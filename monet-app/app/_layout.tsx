@@ -1,51 +1,38 @@
+// app/_layout.tsx
 import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import 'react-native-reanimated';
-import { User } from 'firebase/auth';
-import { ActivityIndicator, View } from 'react-native';
-import { auth } from '@/FirebaseConfig';
+import { useAuthViewModel } from '@/src/viewmodels/auth/useAuthViewModel';
+import { useProtectedRoute } from '@/hooks/routes/useProtectedRoutes';
+import { ActivityIndicator } from 'react-native';
 
 export const unstable_settings = {
-  anchor: '(tabs)',
+  initialRouteName: '(auth)',
 };
 
 export default function RootLayout() {
-  const [initializing, setInitializing] = useState(true);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [user, setUser] = useState<User | null>(null);
+  // ViewModel: Maneja el estado de autenticación
+  const { user, initializing, isAuthenticated } = useAuthViewModel();
 
-  const onAuthStateChanged = (user: User | null ) => {
-    setUser(user);
-    if (initializing) setInitializing(false);
-  }
+  // Hook: Maneja la navegación protegida
+  useProtectedRoute({ 
+    isAuthenticated, 
+    isLoading: initializing 
+  });
 
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(onAuthStateChanged);
-    return unsubscribe;
-  }, []);
-
+  // Vista: Muestra loading mientras se inicializa
   if (initializing) {
-    return (
-      <View
-        style={{
-          alignItems: 'center',
-          justifyContent: 'center',
-          flex: 1,
-        }}>
-          <ActivityIndicator size="large" />
-      </View>
-    )
+    return <ActivityIndicator size="large" color="#10B981" />;
   }
 
+  // Vista: Renderiza la navegación
   return (
     <ThemeProvider value={DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="register" options={{ headerShown: false }} />
-        <Stack.Screen name="recovery" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
       </Stack>
       <StatusBar style="dark" />
     </ThemeProvider>

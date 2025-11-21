@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -10,76 +10,21 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
-  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { auth } from "@/FirebaseConfig";
-import { router } from "expo-router";
-import { FirebaseError } from "firebase/app";
-import { sendPasswordResetEmail } from "firebase/auth";
 import { ThemedView } from "@/components/themed-view";
 import { ThemedText } from "@/components/themed-text";
+import { useRecoveryViewModel } from "@/src/viewmodels/auth/useRecoveryViewModel";
+import { router } from "expo-router";
+
 
 export default function MonetRecovery() {
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleRecovery = async () => {
-    // Validación de email
-    if (!email.trim()) {
-      Alert.alert("Error", "Por favor ingresa tu correo electrónico");
-      return;
-    }
-
-    // Validación básica de formato de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      Alert.alert("Error", "Por favor ingresa un correo electrónico válido");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await sendPasswordResetEmail(auth, email.trim().toLowerCase());
-      
-      Alert.alert(
-        "¡Correo enviado!",
-        "Se ha enviado un enlace de recuperación a tu correo electrónico. Por favor revisa tu bandeja de entrada y spam.",
-        [
-          {
-            text: "OK",
-            onPress: () => router.back(), // Regresa al login
-          },
-        ]
-      );
-    } catch (error: any) {
-      const err = error as FirebaseError;
-      let message = "Error al enviar el correo de recuperación";
-
-      switch (err.code) {
-        case "auth/invalid-email":
-          message = "Correo electrónico inválido";
-          break;
-        case "auth/network-request-failed":
-          message = "Error de conexión. Verifica tu internet";
-          break;
-        case "auth/too-many-requests":
-          message = "Demasiados intentos. Intenta más tarde";
-          break;
-        case "permission-denied":
-          message = "No tienes permisos para realizar esta acción";
-          break;
-        default:
-          message = `Error: ${err.message}`;
-      }
-
-      Alert.alert("Error", message);
-      console.error("Error de recuperación:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  const {
+    email,
+    loading,
+    setEmail,
+    handlePasswordReset,
+  } = useRecoveryViewModel();
 
   return (
     <ThemedView style={styles.container}>
@@ -146,7 +91,7 @@ export default function MonetRecovery() {
               {/* Link a Login */}
               <View style={styles.loginLinkContainer}>
                 <Text style={styles.loginQuestion}>¿Recordaste tu contraseña?</Text>
-                <TouchableOpacity onPress={() => router.push("/index")}>
+                <TouchableOpacity onPress={() => router.push("/(auth)")}>
                   <Text style={styles.link}>Inicia sesión aquí</Text>
                 </TouchableOpacity>
               </View>
@@ -154,7 +99,7 @@ export default function MonetRecovery() {
               {/* Botón Registrarse */}
               <TouchableOpacity
                 style={[styles.button, loading && styles.buttonDisabled]}
-                onPress={handleRecovery}
+                onPress={handlePasswordReset}
                 disabled={loading}
               >
                 <Text style={styles.buttonText}>

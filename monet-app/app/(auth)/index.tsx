@@ -1,43 +1,21 @@
-import {
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
-  Text,
-  ScrollView,
-  Keyboard,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-  Alert,
-} from "react-native";
-import { router } from "expo-router";
-import { auth } from "@/FirebaseConfig";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import React, { useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
-import { ThemedView } from "@/components/themed-view";
-import { ThemedText } from "@/components/themed-text";
-import { FirebaseError } from "firebase/app";
+import React from 'react';
+import { View, TextInput, TouchableOpacity, Text, StyleSheet, Keyboard, KeyboardAvoidingView, Platform, ScrollView, TouchableWithoutFeedback } from 'react-native';
+import { router } from 'expo-router';
+import { useLoginViewModel } from '@/src/viewmodels/auth/UseLoginViewModel';
+import { ThemedView } from '@/components/themed-view';
+import { ThemedText } from '@/components/themed-text';
+import { Ionicons } from '@expo/vector-icons';
 
-export default function MonetLogin() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [loading, setLoading] = useState(false);
-
-  const signIn = async () => {
-    setLoading(true);
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.replace("/home");
-    } catch (error: any) {
-      const err = error as FirebaseError;
-      Alert.alert("Registro fallido: " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+export default function LoginView() {
+   const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    loading,
+    error,
+    signIn,
+  } = useLoginViewModel();
 
   return (
     <ThemedView style={styles.container}>
@@ -91,6 +69,7 @@ export default function MonetLogin() {
                     placeholderTextColor="#9CA3AF"
                     keyboardType="email-address"
                     autoCapitalize="none"
+                    editable={!loading}
                   />
                 </View>
 
@@ -104,16 +83,17 @@ export default function MonetLogin() {
                     placeholder="••••••••"
                     placeholderTextColor="#9CA3AF"
                     secureTextEntry
+                    editable={!loading}
                   />
                 </View>
               </View>
 
               {/* Links */}
               <View style={styles.linksContainer}>
-                <TouchableOpacity onPress={() => router.push("/register")}>
+                <TouchableOpacity onPress={() => router.push("/(auth)/register")}>
                   <Text style={styles.link}>Crear una cuenta</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => router.push("/recovery")}>
+                <TouchableOpacity onPress={() => router.push("/(auth)/recovery")}>
                   <Text style={styles.link}>Recuperar contraseña</Text>
                 </TouchableOpacity>
               </View>

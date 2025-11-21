@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -10,97 +10,27 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
-  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { auth, db } from "@/FirebaseConfig";
-import { router } from "expo-router";
-import { FirebaseError } from "firebase/app";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { ThemedView } from "@/components/themed-view";
 import { ThemedText } from "@/components/themed-text";
-import { setDoc, doc } from "firebase/firestore";
+import { useRegisterViewModel } from "@/src/viewmodels/auth/useRegisterViewModel";
+import { router } from "expo-router";
 
-export default function MonetRegister() {
-  const [fullname, setFullname] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const handleSignUp = async () => {
-    // Validaciones
-    if (!fullname.trim()) {
-      Alert.alert("Debes ingresar un nombre válido");
-      return;
-    }
-
-    if (!email.trim()) {
-      Alert.alert("Debes ingresar un correo electrónico");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      Alert.alert("Las contraseñas no coinciden");
-      return;
-    }
-
-    if (password.length < 6) {
-      Alert.alert("La contraseña debe tener al menos 6 caracteres");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      // 1. Crear usuario en Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const user = userCredential.user;
-
-      // 2. Actualizar el perfil del usuario con el nombre
-      await updateProfile(user, {
-        displayName: fullname,
-      });
-
-      // 3. Guardar información adicional en Firestore
-      await setDoc(doc(db, "users", user.uid), {
-        uid: user.uid,
-        fullname: fullname.trim(),
-        email: email.toLowerCase().trim(),
-        createdAt: new Date().toISOString(),
-        // Puedes agregar más campos según necesites:
-        // photoURL: null,
-        // phoneNumber: null,
-        // balance: 0,
-        // currency: "USD",
-      });
-
-      // 4. Navegar a la app
-      Alert.alert("¡Cuenta creada exitosamente!");
-      router.replace("/home");
-    } catch (error: any) {
-      const err = error as FirebaseError;
-      let message = "Error al crear la cuenta";
-
-      if (err.code === "auth/email-already-in-use") {
-        message = "Este correo ya está registrado";
-      } else if (err.code === "auth/invalid-email") {
-        message = "Correo electrónico inválido";
-      } else if (err.code === "auth/weak-password") {
-        message = "La contraseña es muy débil";
-      } else if (err.code === "auth/network-request-failed") {
-        message = "Error de conexión. Verifica tu internet";
-      }
-
-      Alert.alert(message);
-      console.error("Error completo:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+export default function RegisterView() {
+  const {
+    fullname,
+    email,
+    password,
+    confirmPassword,
+    loading,
+    setFullname,
+    setEmail,
+    setPassword,
+    setConfirmPassword,
+    handleSignUp,
+  } = useRegisterViewModel();
 
   return (
     <ThemedView style={styles.container}>
@@ -209,7 +139,7 @@ export default function MonetRegister() {
               {/* Link a Login */}
               <View style={styles.loginLinkContainer}>
                 <Text style={styles.loginQuestion}>¿Ya tienes cuenta?</Text>
-                <TouchableOpacity onPress={() => router.push("/index")}>
+                <TouchableOpacity onPress={() => router.push("/(auth)")}>
                   <Text style={styles.link}>Inicia sesión aquí</Text>
                 </TouchableOpacity>
               </View>

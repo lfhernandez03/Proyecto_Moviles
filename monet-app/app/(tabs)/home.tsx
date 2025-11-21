@@ -10,7 +10,7 @@ export default function TabOneScreen() {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (!user) {
-        router.replace('/index');
+        router.replace('/(auth)');
       }
     });
 
