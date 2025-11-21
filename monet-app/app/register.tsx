@@ -6,14 +6,20 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { auth } from "@/FirebaseConfig";
+import { auth, db } from "@/FirebaseConfig";
 import { router } from "expo-router";
 import { FirebaseError } from "firebase/app";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { ThemedView } from "@/components/themed-view";
 import { ThemedText } from "@/components/themed-text";
+import { setDoc, doc } from "firebase/firestore";
 
 export default function MonetRegister() {
   const [fullname, setFullname] = useState("");
@@ -22,26 +28,58 @@ export default function MonetRegister() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const signUp = async () => {
+  const handleSignUp = async () => {
+    // Validaciones
+    if (!fullname.trim()) {
+      Alert.alert("Debes ingresar un nombre válido");
+      return;
+    }
 
-    if (!fullname) {
-      alert("Debes ingresar un nombre valido");
+    if (!email.trim()) {
+      Alert.alert("Debes ingresar un correo electrónico");
       return;
     }
 
     if (password !== confirmPassword) {
-      alert("Las contraseñas no coinciden");
+      Alert.alert("Las contraseñas no coinciden");
       return;
     }
 
     if (password.length < 6) {
-      alert("La contraseña debe tener al menos 6 caracteres");
+      Alert.alert("La contraseña debe tener al menos 6 caracteres");
       return;
     }
 
     setLoading(true);
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      // 1. Crear usuario en Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+
+      // 2. Actualizar el perfil del usuario con el nombre
+      await updateProfile(user, {
+        displayName: fullname,
+      });
+
+      // 3. Guardar información adicional en Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        fullname: fullname.trim(),
+        email: email.toLowerCase().trim(),
+        createdAt: new Date().toISOString(),
+        // Puedes agregar más campos según necesites:
+        // photoURL: null,
+        // phoneNumber: null,
+        // balance: 0,
+        // currency: "USD",
+      });
+
+      // 4. Navegar a la app
+      Alert.alert("¡Cuenta creada exitosamente!");
       router.replace("/(tabs)");
     } catch (error: any) {
       const err = error as FirebaseError;
@@ -53,9 +91,12 @@ export default function MonetRegister() {
         message = "Correo electrónico inválido";
       } else if (err.code === "auth/weak-password") {
         message = "La contraseña es muy débil";
+      } else if (err.code === "auth/network-request-failed") {
+        message = "Error de conexión. Verifica tu internet";
       }
 
-      alert(message);
+      Alert.alert(message);
+      console.error("Error completo:", err);
     } finally {
       setLoading(false);
     }
@@ -63,108 +104,130 @@ export default function MonetRegister() {
 
   return (
     <ThemedView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header con botón de regreso */}
-        <View style={styles.headerContainer}>
-          <TouchableOpacity 
-            onPress={() => router.back()} 
-            style={styles.backButton}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardView}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            <Ionicons name="arrow-back" size={24} color="#10B981" />
-          </TouchableOpacity>
-          <ThemedText style={styles.headerText}>Registro</ThemedText>
-        </View>
-
-        {/* Card Principal */}
-        <View style={styles.card}>
-          {/* Logo y Título */}
-          <View style={styles.logoContainer}>
-            <View style={styles.logoCircle}>
-              <Ionicons name="trending-up" size={32} color="#fff" />
-            </View>
-            <Text style={styles.title}>MONET</Text>
-            <Text style={styles.subtitle}>
-              Controla tus finanzas con inteligencia :)
-            </Text>
-          </View>
-
-          {/* Título de Registro */}
-          <View style={styles.welcomeContainer}>
-            <Text style={styles.welcomeTitle}>Crea tu cuenta</Text>
-            <Text style={styles.welcomeSubtitle}>
-              Únete para poder controlar tus finanzas de forma segura
-            </Text>
-          </View>
-
-          {/* Formulario */}
-          <View style={styles.formContainer}>
-            {/* Nombre Completo */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Nombre Completo</Text>
-              <TextInput
-                style={styles.input}
-                value={fullname}
-                onChangeText={setFullname}
-                placeholder="Tu nombre completo"
-                placeholderTextColor="#9CA3AF"
-              />
+            {/* Header con botón de regreso */}
+            <View style={styles.headerContainer}>
+              <TouchableOpacity
+                onPress={() => router.back()}
+                style={styles.backButton}
+              >
+                <Ionicons name="arrow-back" size={24} color="#10B981" />
+              </TouchableOpacity>
+              <ThemedText style={styles.headerText}>Registro</ThemedText>
             </View>
 
-            {/* Email */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Correo electrónico</Text>
-              <TextInput
-                style={styles.input}
-                value={email}
-                onChangeText={setEmail}
-                placeholder="tu@email.com"
-                placeholderTextColor="#9CA3AF"
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
+            {/* Card Principal */}
+            <View style={styles.card}>
+              {/* Logo y Título */}
+              <View style={styles.logoContainer}>
+                <View style={styles.logoCircle}>
+                  <Ionicons name="trending-up" size={32} color="#fff" />
+                </View>
+                <Text style={styles.title}>MONET</Text>
+                <Text style={styles.subtitle}>
+                  Controla tus finanzas con inteligencia :)
+                </Text>
+              </View>
+
+              {/* Título de Registro */}
+              <View style={styles.welcomeContainer}>
+                <Text style={styles.welcomeTitle}>Crea tu cuenta</Text>
+                <Text style={styles.welcomeSubtitle}>
+                  Únete para poder controlar tus finanzas de forma segura
+                </Text>
+              </View>
+
+              {/* Formulario */}
+              <View style={styles.formContainer}>
+                {/* Nombre Completo */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Nombre Completo</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={fullname}
+                    onChangeText={setFullname}
+                    placeholder="Tu nombre completo"
+                    placeholderTextColor="#9CA3AF"
+                    editable={!loading}
+                  />
+                </View>
+
+                {/* Email */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Correo electrónico</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="tu@email.com"
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    editable={!loading}
+                  />
+                </View>
+
+                {/* Password */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Contraseña</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="••••••••"
+                    placeholderTextColor="#9CA3AF"
+                    secureTextEntry
+                    editable={!loading}
+                  />
+                </View>
+
+                {/* Confirmar Password */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Confirmar contraseña</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    placeholder="••••••••"
+                    placeholderTextColor="#9CA3AF"
+                    secureTextEntry
+                    editable={!loading}
+                  />
+                </View>
+              </View>
+
+              {/* Link a Login */}
+              <View style={styles.loginLinkContainer}>
+                <Text style={styles.loginQuestion}>¿Ya tienes cuenta?</Text>
+                <TouchableOpacity onPress={() => router.push("/")}>
+                  <Text style={styles.link}>Inicia sesión aquí</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Botón Registrarse */}
+              <TouchableOpacity
+                style={[styles.button, loading && styles.buttonDisabled]}
+                onPress={handleSignUp}
+                disabled={loading}
+              >
+                <Text style={styles.buttonText}>
+                  {loading ? "Creando cuenta..." : "Registrarse"}
+                </Text>
+              </TouchableOpacity>
             </View>
-
-            {/* Password */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Contraseña</Text>
-              <TextInput
-                style={styles.input}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="••••••••"
-                placeholderTextColor="#9CA3AF"
-                secureTextEntry
-              />
-            </View>
-
-            {/* Confirmar Password */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Confirmar contraseña</Text>
-              <TextInput
-                style={styles.input}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="••••••••"
-                placeholderTextColor="#9CA3AF"
-                secureTextEntry
-              />
-            </View>
-          </View>
-
-          {/* Link a Login */}
-          <View style={styles.loginLinkContainer}>
-            <Text style={styles.loginQuestion}>¿Ya tienes cuenta?</Text>
-            <TouchableOpacity onPress={() => router.push("/")}>
-              <Text style={styles.link}>Inicia sesión aquí</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Botón Registrarse */}
-          <TouchableOpacity style={styles.button} onPress={signUp}>
-            <Text style={styles.buttonText}>Registrarse</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </ThemedView>
   );
 }
@@ -173,14 +236,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  keyboardView: {
+    flex: 1,
+  },
   scrollContent: {
     flexGrow: 1,
     justifyContent: "center",
     padding: 16,
   },
   headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 24,
   },
   backButton: {
@@ -228,12 +294,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   welcomeTitle: {
+    textAlign: "center",
     fontSize: 20,
     fontWeight: "bold",
     color: "#1F2937",
     marginBottom: 4,
   },
   welcomeSubtitle: {
+    textAlign: "center",
     fontSize: 14,
     color: "#6B7280",
   },
@@ -283,5 +351,9 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  buttonDisabled: {
+    backgroundColor: "#6EE7B7",
+    opacity: 0.7,
   },
 });
