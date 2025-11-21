@@ -16,70 +16,91 @@ import { Ionicons } from "@expo/vector-icons";
 import { auth, db } from "@/FirebaseConfig";
 import { router } from "expo-router";
 import { FirebaseError } from "firebase/app";
-import { sendPasswordResetEmail } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { ThemedView } from "@/components/themed-view";
 import { ThemedText } from "@/components/themed-text";
+import { setDoc, doc } from "firebase/firestore";
 
-export default function MonetRecovery() {
+export default function MonetRegister() {
+  const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleRecovery = async () => {
-    // Validación de email
-    if (!email.trim()) {
-      Alert.alert("Error", "Por favor ingresa tu correo electrónico");
+  const handleSignUp = async () => {
+    // Validaciones
+    if (!fullname.trim()) {
+      Alert.alert("Debes ingresar un nombre válido");
       return;
     }
 
-    // Validación básica de formato de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      Alert.alert("Error", "Por favor ingresa un correo electrónico válido");
+    if (!email.trim()) {
+      Alert.alert("Debes ingresar un correo electrónico");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert("Las contraseñas no coinciden");
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert("La contraseña debe tener al menos 6 caracteres");
       return;
     }
 
     setLoading(true);
     try {
-      await sendPasswordResetEmail(auth, email.trim().toLowerCase());
-      
-      Alert.alert(
-        "¡Correo enviado!",
-        "Se ha enviado un enlace de recuperación a tu correo electrónico. Por favor revisa tu bandeja de entrada y spam.",
-        [
-          {
-            text: "OK",
-            onPress: () => router.back(), // Regresa al login
-          },
-        ]
+      // 1. Crear usuario en Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
       );
+      const user = userCredential.user;
+
+      // 2. Actualizar el perfil del usuario con el nombre
+      await updateProfile(user, {
+        displayName: fullname,
+      });
+
+      // 3. Guardar información adicional en Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        fullname: fullname.trim(),
+        email: email.toLowerCase().trim(),
+        createdAt: new Date().toISOString(),
+        // Puedes agregar más campos según necesites:
+        // photoURL: null,
+        // phoneNumber: null,
+        // balance: 0,
+        // currency: "USD",
+      });
+
+      // 4. Navegar a la app
+      Alert.alert("¡Cuenta creada exitosamente!");
+      router.replace("/home");
     } catch (error: any) {
       const err = error as FirebaseError;
-      let message = "Error al enviar el correo de recuperación";
+      let message = "Error al crear la cuenta";
 
-      switch (err.code) {
-        case "auth/invalid-email":
-          message = "Correo electrónico inválido";
-          break;
-        case "auth/network-request-failed":
-          message = "Error de conexión. Verifica tu internet";
-          break;
-        case "auth/too-many-requests":
-          message = "Demasiados intentos. Intenta más tarde";
-          break;
-        case "permission-denied":
-          message = "No tienes permisos para realizar esta acción";
-          break;
-        default:
-          message = `Error: ${err.message}`;
+      if (err.code === "auth/email-already-in-use") {
+        message = "Este correo ya está registrado";
+      } else if (err.code === "auth/invalid-email") {
+        message = "Correo electrónico inválido";
+      } else if (err.code === "auth/weak-password") {
+        message = "La contraseña es muy débil";
+      } else if (err.code === "auth/network-request-failed") {
+        message = "Error de conexión. Verifica tu internet";
       }
 
-      Alert.alert("Error", message);
-      console.error("Error de recuperación:", err);
+      Alert.alert(message);
+      console.error("Error completo:", err);
     } finally {
       setLoading(false);
     }
   };
-
 
   return (
     <ThemedView style={styles.container}>
@@ -120,14 +141,27 @@ export default function MonetRecovery() {
 
               {/* Título de Registro */}
               <View style={styles.welcomeContainer}>
-                <Text style={styles.welcomeTitle}>Recupera tu contraseña</Text>
+                <Text style={styles.welcomeTitle}>Crea tu cuenta</Text>
                 <Text style={styles.welcomeSubtitle}>
-                  Ingresa tu correo y te enviaremos un enlace para restablecerla. 
-                  Revisa también tu carpeta de spam si no recibes el mensaje.
+                  Únete para poder controlar tus finanzas de forma segura
                 </Text>
               </View>
 
               {/* Formulario */}
+              <View style={styles.formContainer}>
+                {/* Nombre Completo */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Nombre Completo</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={fullname}
+                    onChangeText={setFullname}
+                    placeholder="Tu nombre completo"
+                    placeholderTextColor="#9CA3AF"
+                    editable={!loading}
+                  />
+                </View>
+
                 {/* Email */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Correo electrónico</Text>
@@ -143,10 +177,39 @@ export default function MonetRecovery() {
                   />
                 </View>
 
+                {/* Password */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Contraseña</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="••••••••"
+                    placeholderTextColor="#9CA3AF"
+                    secureTextEntry
+                    editable={!loading}
+                  />
+                </View>
+
+                {/* Confirmar Password */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Confirmar contraseña</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    placeholder="••••••••"
+                    placeholderTextColor="#9CA3AF"
+                    secureTextEntry
+                    editable={!loading}
+                  />
+                </View>
+              </View>
+
               {/* Link a Login */}
               <View style={styles.loginLinkContainer}>
-                <Text style={styles.loginQuestion}>¿Recordaste tu contraseña?</Text>
-                <TouchableOpacity onPress={() => router.push("/")}>
+                <Text style={styles.loginQuestion}>¿Ya tienes cuenta?</Text>
+                <TouchableOpacity onPress={() => router.push("/index")}>
                   <Text style={styles.link}>Inicia sesión aquí</Text>
                 </TouchableOpacity>
               </View>
@@ -154,11 +217,11 @@ export default function MonetRecovery() {
               {/* Botón Registrarse */}
               <TouchableOpacity
                 style={[styles.button, loading && styles.buttonDisabled]}
-                onPress={handleRecovery}
+                onPress={handleSignUp}
                 disabled={loading}
               >
                 <Text style={styles.buttonText}>
-                  {loading ? "Enviando..." : "Enviar"}
+                  {loading ? "Creando cuenta..." : "Registrarse"}
                 </Text>
               </TouchableOpacity>
             </View>

@@ -13,6 +13,7 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const [initializing, setInitializing] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [user, setUser] = useState<User | null>(null);
 
   const onAuthStateChanged = (user: User | null ) => {

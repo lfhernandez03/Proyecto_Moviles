@@ -1,9 +1,10 @@
+import React, { useState } from "react";
 import {
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
   View,
   Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
   ScrollView,
   Keyboard,
   KeyboardAvoidingView,
@@ -11,32 +12,74 @@ import {
   TouchableWithoutFeedback,
   Alert,
 } from "react-native";
-import { router } from "expo-router";
-import { auth } from "@/FirebaseConfig";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import React, { useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { auth } from "@/FirebaseConfig";
+import { router } from "expo-router";
+import { FirebaseError } from "firebase/app";
+import { sendPasswordResetEmail } from "firebase/auth";
 import { ThemedView } from "@/components/themed-view";
 import { ThemedText } from "@/components/themed-text";
-import { FirebaseError } from "firebase/app";
 
-export default function MonetLogin() {
+export default function MonetRecovery() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const signIn = async () => {
+  const handleRecovery = async () => {
+    // Validación de email
+    if (!email.trim()) {
+      Alert.alert("Error", "Por favor ingresa tu correo electrónico");
+      return;
+    }
+
+    // Validación básica de formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert("Error", "Por favor ingresa un correo electrónico válido");
+      return;
+    }
+
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.replace("/(tabs)");
+      await sendPasswordResetEmail(auth, email.trim().toLowerCase());
+      
+      Alert.alert(
+        "¡Correo enviado!",
+        "Se ha enviado un enlace de recuperación a tu correo electrónico. Por favor revisa tu bandeja de entrada y spam.",
+        [
+          {
+            text: "OK",
+            onPress: () => router.back(), // Regresa al login
+          },
+        ]
+      );
     } catch (error: any) {
       const err = error as FirebaseError;
-      Alert.alert("Registro fallido: " + err.message);
+      let message = "Error al enviar el correo de recuperación";
+
+      switch (err.code) {
+        case "auth/invalid-email":
+          message = "Correo electrónico inválido";
+          break;
+        case "auth/network-request-failed":
+          message = "Error de conexión. Verifica tu internet";
+          break;
+        case "auth/too-many-requests":
+          message = "Demasiados intentos. Intenta más tarde";
+          break;
+        case "permission-denied":
+          message = "No tienes permisos para realizar esta acción";
+          break;
+        default:
+          message = `Error: ${err.message}`;
+      }
+
+      Alert.alert("Error", message);
+      console.error("Error de recuperación:", err);
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <ThemedView style={styles.container}>
@@ -51,8 +94,16 @@ export default function MonetLogin() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {/* Header */}
-            <ThemedText style={styles.headerText}>Login</ThemedText>
+            {/* Header con botón de regreso */}
+            <View style={styles.headerContainer}>
+              <TouchableOpacity
+                onPress={() => router.back()}
+                style={styles.backButton}
+              >
+                <Ionicons name="arrow-back" size={24} color="#10B981" />
+              </TouchableOpacity>
+              <ThemedText style={styles.headerText}>Registro</ThemedText>
+            </View>
 
             {/* Card Principal */}
             <View style={styles.card}>
@@ -61,24 +112,22 @@ export default function MonetLogin() {
                 <View style={styles.logoCircle}>
                   <Ionicons name="trending-up" size={32} color="#fff" />
                 </View>
-                <ThemedText type="title" style={styles.title}>
-                  MONET
-                </ThemedText>
+                <Text style={styles.title}>MONET</Text>
                 <Text style={styles.subtitle}>
                   Controla tus finanzas con inteligencia :)
                 </Text>
               </View>
 
-              {/* Bienvenida */}
+              {/* Título de Registro */}
               <View style={styles.welcomeContainer}>
-                <Text style={styles.welcomeTitle}>¡Bienvenido!</Text>
+                <Text style={styles.welcomeTitle}>Recupera tu contraseña</Text>
                 <Text style={styles.welcomeSubtitle}>
-                  Inicia sesión para continuar gestionando tus finanzas
+                  Ingresa tu correo y te enviaremos un enlace para restablecerla. 
+                  Revisa también tu carpeta de spam si no recibes el mensaje.
                 </Text>
               </View>
 
               {/* Formulario */}
-              <View style={styles.formContainer}>
                 {/* Email */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Correo electrónico</Text>
@@ -90,35 +139,27 @@ export default function MonetLogin() {
                     placeholderTextColor="#9CA3AF"
                     keyboardType="email-address"
                     autoCapitalize="none"
+                    editable={!loading}
                   />
                 </View>
 
-                {/* Password */}
-                <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Contraseña</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={password}
-                    onChangeText={setPassword}
-                    placeholder="••••••••"
-                    placeholderTextColor="#9CA3AF"
-                    secureTextEntry
-                  />
-                </View>
+              {/* Link a Login */}
+              <View style={styles.loginLinkContainer}>
+                <Text style={styles.loginQuestion}>¿Recordaste tu contraseña?</Text>
+                <TouchableOpacity onPress={() => router.push("/index")}>
+                  <Text style={styles.link}>Inicia sesión aquí</Text>
+                </TouchableOpacity>
               </View>
 
-              {/* Links */}
-              <View style={styles.linksContainer}>
-                <TouchableOpacity onPress={() => router.push("/register")}>
-                  <Text style={styles.link}>Crear una cuenta</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => router.push("/recovery")}>
-                  <Text style={styles.link}>Recuperar contraseña</Text>
-                </TouchableOpacity>
-              </View>
-              {/* Botón Login */}
-              <TouchableOpacity style={styles.button} onPress={signIn}>
-                <Text style={styles.buttonText}>Entrar</Text>
+              {/* Botón Registrarse */}
+              <TouchableOpacity
+                style={[styles.button, loading && styles.buttonDisabled]}
+                onPress={handleRecovery}
+                disabled={loading}
+              >
+                <Text style={styles.buttonText}>
+                  {loading ? "Enviando..." : "Enviar"}
+                </Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -140,19 +181,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 16,
   },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  backButton: {
+    marginRight: 12,
+  },
   headerText: {
     color: "#9CA3AF",
     fontSize: 14,
-    marginBottom: 24,
-    marginLeft: 4,
-  },
-  title: {
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#6B7280",
-    textAlign: "center",
   },
   card: {
     backgroundColor: "#fff",
@@ -177,6 +216,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
   },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#1F2937",
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "#6B7280",
+    textAlign: "center",
+  },
   welcomeContainer: {
     marginBottom: 24,
   },
@@ -193,7 +243,7 @@ const styles = StyleSheet.create({
     color: "#6B7280",
   },
   formContainer: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   inputGroup: {
     marginBottom: 16,
@@ -214,16 +264,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#1F2937",
   },
-  linksContainer: {
+  loginLinkContainer: {
     alignItems: "center",
-    gap: 8,
     marginBottom: 24,
+  },
+  loginQuestion: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginBottom: 4,
   },
   link: {
     color: "#10B981",
     fontSize: 14,
     fontWeight: "500",
-    marginVertical: 4,
   },
   button: {
     backgroundColor: "#10B981",
@@ -235,5 +288,9 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  buttonDisabled: {
+    backgroundColor: "#6EE7B7",
+    opacity: 0.7,
   },
 });
