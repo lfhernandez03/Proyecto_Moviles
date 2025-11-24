@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { AuthService } from '@/src/services/auth/AuthService';
 import { TransactionService } from '@/src/services/firestore/TransactionService';
 import { Transaction, TransactionSummary } from '@/src/models/Transaction';
+import { formatCurrency } from '@/src/utils/currency';
 
 export const useHomeViewModel = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -115,7 +116,7 @@ export const useHomeViewModel = () => {
    * Formatea el monto para mostrar
    */
   const formatAmount = (amount: number): string => {
-    return balanceVisible ? `$${amount.toLocaleString()}` : '****';
+    return balanceVisible ? formatCurrency(amount, false) : '****';
   };
 
   // Cargar datos al montar

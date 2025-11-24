@@ -55,7 +55,7 @@ export default function TabLayout() {
         options={{
           title: 'Presupuesto',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="cash-outline" size={24} color={color} />
+            <Ionicons name="wallet-outline" size={24} color={color} />
           ),
         }}
       />

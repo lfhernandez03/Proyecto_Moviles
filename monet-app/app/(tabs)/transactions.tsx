@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ThemedView } from '@/components/themed-view';
 import { useTransactionsViewModel } from '@/src/viewmodels/tabs/transactions/useTransactionsViewModel';
 import { Transaction } from '@/src/models/Transaction';
+import { formatSignedCurrency } from '@/src/utils/currency';
 
 export default function TransactionsView() {
   const {
@@ -156,8 +157,7 @@ export default function TransactionsView() {
                   ? styles.amountPositive 
                   : styles.amountNegative
               ]}>
-                {transaction.type === 'income' ? '+' : '-'}$
-                {transaction.amount.toLocaleString()}
+                {formatSignedCurrency(transaction.amount, transaction.type)}
               </Text>
             </TouchableOpacity>
           ))

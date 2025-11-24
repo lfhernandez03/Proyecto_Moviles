@@ -1,16 +1,12 @@
-// src/viewmodels/tabs/transactions/useAddTransactionViewModel.ts
 import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { router } from 'expo-router';
 import { AuthService } from '@/src/services/auth/AuthService';
-import { TransactionService } from '@/src/services/firestore/TransactionService';
+import { BudgetService } from '@/src/services/firestore/BudgetService';
 import { CategoryService } from '@/src/services/firestore/CategoryService';
 import { Category } from '@/src/models/Category';
 
-type TransactionType = 'expense' | 'income';
-
-export const useAddTransactionViewModel = () => {
-  const [type, setType] = useState<TransactionType>('expense');
+export const useCreateBudgetViewModel = () => {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -21,31 +17,24 @@ export const useAddTransactionViewModel = () => {
   const currentUser = AuthService.getCurrentUser();
 
   /**
-   * Carga las categorías del usuario
+   * Carga las categorías de gastos
    */
   const loadCategories = async () => {
     if (!currentUser) return;
 
     try {
       setLoadingCategories(true);
-      const userCategories = await CategoryService.getCategoriesByType(
+      // Solo categorías de gastos para presupuestos
+      const expenseCategories = await CategoryService.getCategoriesByType(
         currentUser.uid,
-        type
+        'expense'
       );
-      setCategories(userCategories);
+      setCategories(expenseCategories);
     } catch (error) {
       console.error('Error al cargar categorías:', error);
     } finally {
       setLoadingCategories(false);
     }
-  };
-
-  /**
-   * Cambia el tipo de transacción
-   */
-  const handleTypeChange = (newType: TransactionType) => {
-    setType(newType);
-    setSelectedCategory('');
   };
 
   /**
@@ -71,7 +60,7 @@ export const useAddTransactionViewModel = () => {
   const navigateToCreateCategory = () => {
     router.push({
       pathname: '/category/create-category',
-      params: { type },
+      params: { type: 'expense', returnTo: 'budget' },
     });
   };
 
@@ -94,7 +83,7 @@ export const useAddTransactionViewModel = () => {
       return 'Ingresa una descripción';
     }
 
-    if (type === 'expense' && !selectedCategory) {
+    if (!selectedCategory) {
       return 'Selecciona una categoría';
     }
 
@@ -102,7 +91,7 @@ export const useAddTransactionViewModel = () => {
   };
 
   /**
-   * Guarda la transacción en Firebase
+   * Guarda el presupuesto en Firebase
    */
   const handleSave = async () => {
     if (!currentUser) {
@@ -120,30 +109,29 @@ export const useAddTransactionViewModel = () => {
     try {
       const categoryData = getSelectedCategoryData();
       
-      const transactionData: any = {
+      const now = new Date();
+      const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      await BudgetService.createBudget({
         userId: currentUser.uid,
-        type,
+        category: selectedCategory,
+        categoryName: categoryData?.displayName || selectedCategory,
         amount: parseFloat(amount),
-        description: description.trim(),
-        date: new Date().toISOString(),
-      };
-
-      if (type === 'expense') {
-        transactionData.category = selectedCategory;
-      } else {
-        transactionData.category = selectedCategory || 'salary';
-      }
-
-      await TransactionService.createTransaction(transactionData);
+        color: categoryData?.color || '#6B7280',
+        period: 'monthly',
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+      });
 
       Alert.alert(
         '¡Éxito!',
-        `${type === 'income' ? 'Ingreso' : 'Gasto'} guardado correctamente`,
+        'Presupuesto creado correctamente',
         [{ text: 'OK', onPress: () => router.back() }]
       );
     } catch (error) {
-      console.error('Error al guardar transacción:', error);
-      Alert.alert('Error', 'No se pudo guardar la transacción. Intenta de nuevo.');
+      console.error('Error al guardar presupuesto:', error);
+      Alert.alert('Error', 'No se pudo guardar el presupuesto. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -167,13 +155,12 @@ export const useAddTransactionViewModel = () => {
     }
   };
 
-  // Cargar categorías cuando cambia el tipo
+  // Cargar categorías al montar
   useEffect(() => {
     loadCategories();
-  }, [type]);
+  }, []);
 
   return {
-    type,
     amount,
     description,
     setDescription,
@@ -181,7 +168,6 @@ export const useAddTransactionViewModel = () => {
     categories,
     loading,
     loadingCategories,
-    handleTypeChange,
     handleAmountChange,
     handleCategorySelect,
     handleSave,

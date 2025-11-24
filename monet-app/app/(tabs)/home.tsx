@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
@@ -7,11 +7,11 @@ import {
   ScrollView,
   RefreshControl,
   ActivityIndicator,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { ThemedView } from '@/components/themed-view';
-import { useHomeViewModel } from '@/src/viewmodels/tabs/useHomeViewModel';
-import { Transaction } from '@/src/models/Transaction';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { ThemedView } from "@/components/themed-view";
+import { useHomeViewModel } from "@/src/viewmodels/tabs/useHomeViewModel";
+import { Transaction } from "@/src/models/Transaction";
 
 export default function HomeView() {
   const {
@@ -37,29 +37,52 @@ export default function HomeView() {
     const diffTime = Math.abs(today.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays === 0) return 'Hoy';
-    if (diffDays === 1) return 'Ayer';
+    if (diffDays === 0) return "Hoy";
+    if (diffDays === 1) return "Ayer";
     if (diffDays <= 7) return `Hace ${diffDays} días`;
-    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+    return date.toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
   };
 
   // Función para formatear el nombre de la categoría
   const formatCategoryName = (category: string): string => {
     const translations: { [key: string]: string } = {
-      food: 'Alimentación',
-      transport: 'Transporte',
-      shopping: 'Compras',
-      entertainment: 'Entretenimiento',
-      bills: 'Servicios',
-      salary: 'Salario',
-      health: 'Salud',
-      other: 'Otro',
+      food: "Alimentación",
+      transport: "Transporte",
+      shopping: "Compras",
+      entertainment: "Entretenimiento",
+      bills: "Servicios",
+      salary: "Salario",
+      health: "Salud",
+      other: "Otro",
     };
     return translations[category] || category;
   };
 
   return (
     <ThemedView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.headerTitle}>
+            ¡Hola, {currentUser?.displayName?.split(" ")[0] || "Usuario"}!
+          </Text>
+          <Text style={styles.headerSubtitle}>Gestiona tus finanzas</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.eyeButton}
+          onPress={toggleBalanceVisibility}
+        >
+          <Ionicons
+            name={balanceVisible ? "eye-outline" : "eye-off-outline"}
+            size={24}
+            color="#6B7280"
+          />
+        </TouchableOpacity>
+      </View>
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -67,26 +90,6 @@ export default function HomeView() {
           <RefreshControl refreshing={loading} onRefresh={refreshData} />
         }
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.headerTitle}>
-              ¡Hola, {currentUser?.displayName?.split(' ')[0] || 'Usuario'}!
-            </Text>
-            <Text style={styles.headerSubtitle}>Gestiona tus finanzas</Text>
-          </View>
-          <TouchableOpacity
-            style={styles.eyeButton}
-            onPress={toggleBalanceVisibility}
-          >
-            <Ionicons
-              name={balanceVisible ? 'eye-outline' : 'eye-off-outline'}
-              size={24}
-              color="#6B7280"
-            />
-          </TouchableOpacity>
-        </View>
-
         {/* Balance Card */}
         <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>Balance total</Text>
@@ -201,12 +204,12 @@ export default function HomeView() {
                     styles.transactionIcon,
                     {
                       backgroundColor:
-                        transaction.type === 'income' ? '#D1FAE5' : '#FEE2E2',
+                        transaction.type === "income" ? "#D1FAE5" : "#FEE2E2",
                     },
                   ]}
                 >
                   <Text style={styles.transactionEmoji}>
-                    {transaction.icon || '📝'}
+                    {transaction.icon || "📝"}
                   </Text>
                 </View>
                 <View style={styles.transactionInfo}>
@@ -229,7 +232,7 @@ export default function HomeView() {
                   ]}
                 >
                   {transaction.type === 'income' ? '+' : '-'}$
-                  {transaction.amount.toLocaleString()}
+                  {transaction.amount.toLocaleString('es-MX')}
                 </Text>
               </TouchableOpacity>
             ))
@@ -245,35 +248,35 @@ export default function HomeView() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: "#F9FAFB",
   },
   scrollView: {
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontWeight: "bold",
+    color: "#1F2937",
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: "#6B7280",
     marginTop: 2,
   },
   eyeButton: {
     padding: 8,
   },
   balanceCard: {
-    backgroundColor: '#10B981',
+    backgroundColor: "#10B981",
     borderRadius: 16,
     padding: 24,
     marginHorizontal: 20,
@@ -281,32 +284,32 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   balanceLabel: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 14,
     opacity: 0.9,
     marginBottom: 8,
   },
   balanceAmount: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 36,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 16,
   },
   balanceDetails: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 24,
   },
   balanceItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   balanceText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 12,
   },
   summaryContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: 20,
     gap: 12,
     marginBottom: 24,
@@ -317,21 +320,21 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   summaryCardGreen: {
-    backgroundColor: '#10B981',
+    backgroundColor: "#10B981",
   },
   summaryCardRed: {
-    backgroundColor: '#EF4444',
+    backgroundColor: "#EF4444",
   },
   summaryLabel: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 12,
     marginTop: 8,
     marginBottom: 4,
   },
   summaryAmount: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   section: {
     paddingHorizontal: 20,
@@ -339,22 +342,22 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontWeight: "bold",
+    color: "#1F2937",
     marginBottom: 16,
   },
   quickActions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
   },
   actionButton: {
-    width: '48%',
-    backgroundColor: '#fff',
+    width: "48%",
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -364,25 +367,25 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 12,
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#F3F4F6",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 8,
   },
   actionText: {
     fontSize: 12,
-    color: '#1F2937',
-    textAlign: 'center',
-    fontWeight: '500',
+    color: "#1F2937",
+    textAlign: "center",
+    fontWeight: "500",
   },
   transactionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -392,8 +395,8 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   transactionEmoji: {
@@ -404,44 +407,44 @@ const styles = StyleSheet.create({
   },
   transactionTitle: {
     fontSize: 15,
-    fontWeight: '600',
-    color: '#1F2937',
+    fontWeight: "600",
+    color: "#1F2937",
     marginBottom: 2,
   },
   transactionSubtitle: {
     fontSize: 13,
-    color: '#6B7280',
+    color: "#6B7280",
     marginBottom: 2,
   },
   transactionDate: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: "#9CA3AF",
   },
   transactionAmount: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   amountPositive: {
-    color: '#10B981',
+    color: "#10B981",
   },
   amountNegative: {
-    color: '#EF4444',
+    color: "#EF4444",
   },
   emptyState: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 48,
   },
   emptyStateText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#6B7280',
+    fontWeight: "600",
+    color: "#6B7280",
     marginTop: 16,
   },
   emptyStateSubtext: {
     fontSize: 14,
-    color: '#9CA3AF',
+    color: "#9CA3AF",
     marginTop: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   bottomSpacing: {
     height: 20,
