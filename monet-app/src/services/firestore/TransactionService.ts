@@ -1,3 +1,4 @@
+// src/services/firestore/TransactionService.ts
 import { 
   collection, 
   addDoc, 
@@ -23,29 +24,43 @@ export class TransactionService {
   static async createTransaction(
     transaction: Omit<Transaction, 'id' | 'createdAt'>
   ): Promise<string> {
-    const transactionData = {
-      ...transaction,
-      createdAt: new Date().toISOString(),
-    };
+    try {
+      const transactionData = {
+        ...transaction,
+        createdAt: new Date().toISOString(),
+      };
 
-    const docRef = await addDoc(
-      collection(db, this.COLLECTION),
-      transactionData
-    );
-    return docRef.id;
+      console.log('Creando transacción:', transactionData);
+
+      const docRef = await addDoc(
+        collection(db, this.COLLECTION),
+        transactionData
+      );
+      
+      console.log('Transacción creada con ID:', docRef.id);
+      return docRef.id;
+    } catch (error) {
+      console.error('Error en createTransaction:', error);
+      throw error;
+    }
   }
 
   /**
    * Obtiene una transacción por ID
    */
   static async getTransactionById(id: string): Promise<Transaction | null> {
-    const docSnap = await getDoc(doc(db, this.COLLECTION, id));
-    if (!docSnap.exists()) return null;
-    
-    return {
-      id: docSnap.id,
-      ...docSnap.data(),
-    } as Transaction;
+    try {
+      const docSnap = await getDoc(doc(db, this.COLLECTION, id));
+      if (!docSnap.exists()) return null;
+      
+      return {
+        id: docSnap.id,
+        ...docSnap.data(),
+      } as Transaction;
+    } catch (error) {
+      console.error('Error en getTransactionById:', error);
+      throw error;
+    }
   }
 
   /**
@@ -55,41 +70,55 @@ export class TransactionService {
     userId: string,
     limitCount: number = 50
   ): Promise<Transaction[]> {
-    const q = query(
-      collection(db, this.COLLECTION),
-      where('userId', '==', userId),
-      orderBy('date', 'desc'),
-      limit(limitCount)
-    );
+    try {
+      console.log('Obteniendo transacciones para userId:', userId);
+      
+      const q = query(
+        collection(db, this.COLLECTION),
+        where('userId', '==', userId),
+        orderBy('date', 'desc'),
+        limit(limitCount)
+      );
 
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Transaction[];
+      const querySnapshot = await getDocs(q);
+      console.log('Documentos encontrados:', querySnapshot.size);
+      
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Transaction[];
+    } catch (error) {
+      console.error('Error en getUserTransactions:', error);
+      throw error;
+    }
   }
 
   /**
    * Obtiene transacciones del mes actual
    */
   static async getMonthTransactions(userId: string): Promise<Transaction[]> {
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    try {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-    const q = query(
-      collection(db, this.COLLECTION),
-      where('userId', '==', userId),
-      where('date', '>=', startOfMonth.toISOString()),
-      where('date', '<=', endOfMonth.toISOString()),
-      orderBy('date', 'desc')
-    );
+      const q = query(
+        collection(db, this.COLLECTION),
+        where('userId', '==', userId),
+        where('date', '>=', startOfMonth.toISOString()),
+        where('date', '<=', endOfMonth.toISOString()),
+        orderBy('date', 'desc')
+      );
 
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Transaction[];
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Transaction[];
+    } catch (error) {
+      console.error('Error en getMonthTransactions:', error);
+      throw error;
+    }
   }
 
   /**
@@ -99,13 +128,23 @@ export class TransactionService {
     transactionId: string,
     data: Partial<Transaction>
   ): Promise<void> {
-    await updateDoc(doc(db, this.COLLECTION, transactionId), data);
+    try {
+      await updateDoc(doc(db, this.COLLECTION, transactionId), data);
+    } catch (error) {
+      console.error('Error en updateTransaction:', error);
+      throw error;
+    }
   }
 
   /**
    * Elimina una transacción
    */
   static async deleteTransaction(transactionId: string): Promise<void> {
-    await deleteDoc(doc(db, this.COLLECTION, transactionId));
+    try {
+      await deleteDoc(doc(db, this.COLLECTION, transactionId));
+    } catch (error) {
+      console.error('Error en deleteTransaction:', error);
+      throw error;
+    }
   }
 }

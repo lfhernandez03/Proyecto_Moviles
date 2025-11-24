@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
+import { Alert } from 'react-native';
 import { AuthService } from '@/src/services/auth/AuthService';
 import { TransactionService } from '@/src/services/firestore/TransactionService';
 import { Transaction } from '@/src/models/Transaction';
@@ -20,18 +21,38 @@ export const useTransactionsViewModel = () => {
    * Carga las transacciones del usuario
    */
   const loadTransactions = async () => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      console.log('No hay usuario autenticado');
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
+
       const userTransactions = await TransactionService.getUserTransactions(
         currentUser.uid,
         50
       );
+      
+      console.log('Transacciones cargadas:', userTransactions.length);
       setTransactions(userTransactions);
       filterTransactions(userTransactions, selectedTab, searchQuery);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al cargar transacciones:', error);
+      
+      // Mostrar mensaje de error específico
+      if (error.code === 'permission-denied') {
+        Alert.alert(
+          'Error de permisos',
+          'No tienes permisos para acceder a las transacciones. Por favor, verifica la configuración de Firestore.'
+        );
+      } else {
+        Alert.alert(
+          'Error',
+          'No se pudieron cargar las transacciones. Intenta de nuevo.'
+        );
+      }
     } finally {
       setLoading(false);
     }
