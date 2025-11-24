@@ -1,4 +1,3 @@
-// app/(tabs)/home.tsx
 import React from 'react';
 import {
   View,
@@ -31,20 +30,6 @@ export default function HomeView() {
     refreshData,
   } = useHomeViewModel();
 
-  // Función para obtener el emoji por categoría
-  const getCategoryIcon = (category: string): string => {
-    const icons: { [key: string]: string } = {
-      food: '🍔',
-      transport: '⛽',
-      entertainment: '🎬',
-      shopping: '🛍️',
-      bills: '📱',
-      salary: '💵',
-      other: '🔄',
-    };
-    return icons[category] || '📝';
-  };
-
   // Función para formatear fecha relativa
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -56,6 +41,21 @@ export default function HomeView() {
     if (diffDays === 1) return 'Ayer';
     if (diffDays <= 7) return `Hace ${diffDays} días`;
     return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+  };
+
+  // Función para formatear el nombre de la categoría
+  const formatCategoryName = (category: string): string => {
+    const translations: { [key: string]: string } = {
+      food: 'Alimentación',
+      transport: 'Transporte',
+      shopping: 'Compras',
+      entertainment: 'Entretenimiento',
+      bills: 'Servicios',
+      salary: 'Salario',
+      health: 'Salud',
+      other: 'Otro',
+    };
+    return translations[category] || category;
   };
 
   return (
@@ -175,66 +175,66 @@ export default function HomeView() {
         </View>
 
         {/* Transactions List */}
-<View style={styles.section}>
-  <Text style={styles.sectionTitle}>Transacciones Recientes</Text>
-  {loading && transactions.length === 0 ? (
-    <ActivityIndicator size="large" color="#10B981" />
-  ) : transactions.length === 0 ? (
-    <View style={styles.emptyState}>
-      <Ionicons name="receipt-outline" size={48} color="#9CA3AF" />
-      <Text style={styles.emptyStateText}>
-        No hay transacciones aún
-      </Text>
-      <Text style={styles.emptyStateSubtext}>
-        Comienza agregando tu primer ingreso o gasto
-      </Text>
-    </View>
-  ) : (
-    transactions.map((transaction: Transaction) => (
-      <TouchableOpacity
-        key={transaction.id}
-        style={styles.transactionItem}
-        onPress={() => navigateToTransactionDetail(transaction.id)}
-      >
-        <View
-          style={[
-            styles.transactionIcon,
-            {
-              backgroundColor:
-                transaction.type === 'income' ? '#D1FAE5' : '#FEE2E2',
-            },
-          ]}
-        >
-          <Text style={styles.transactionEmoji}>
-            {transaction.icon || getCategoryIcon(transaction.category)}
-          </Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Transacciones Recientes</Text>
+          {loading && transactions.length === 0 ? (
+            <ActivityIndicator size="large" color="#10B981" />
+          ) : transactions.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="receipt-outline" size={48} color="#9CA3AF" />
+              <Text style={styles.emptyStateText}>
+                No hay transacciones aún
+              </Text>
+              <Text style={styles.emptyStateSubtext}>
+                Comienza agregando tu primer ingreso o gasto
+              </Text>
+            </View>
+          ) : (
+            transactions.map((transaction: Transaction) => (
+              <TouchableOpacity
+                key={transaction.id}
+                style={styles.transactionItem}
+                onPress={() => navigateToTransactionDetail(transaction.id)}
+              >
+                <View
+                  style={[
+                    styles.transactionIcon,
+                    {
+                      backgroundColor:
+                        transaction.type === 'income' ? '#D1FAE5' : '#FEE2E2',
+                    },
+                  ]}
+                >
+                  <Text style={styles.transactionEmoji}>
+                    {transaction.icon || '📝'}
+                  </Text>
+                </View>
+                <View style={styles.transactionInfo}>
+                  <Text style={styles.transactionTitle}>
+                    {transaction.description}
+                  </Text>
+                  <Text style={styles.transactionSubtitle}>
+                    {formatCategoryName(transaction.category)}
+                  </Text>
+                  <Text style={styles.transactionDate}>
+                    {formatDate(transaction.date)}
+                  </Text>
+                </View>
+                <Text
+                  style={[
+                    styles.transactionAmount,
+                    transaction.type === 'income'
+                      ? styles.amountPositive
+                      : styles.amountNegative,
+                  ]}
+                >
+                  {transaction.type === 'income' ? '+' : '-'}$
+                  {transaction.amount.toLocaleString()}
+                </Text>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
-        <View style={styles.transactionInfo}>
-          <Text style={styles.transactionTitle}>
-            {transaction.description}
-          </Text>
-          <Text style={styles.transactionSubtitle}>
-            {transaction.category}
-          </Text>
-          <Text style={styles.transactionDate}>
-            {formatDate(transaction.date)}
-          </Text>
-        </View>
-        <Text
-          style={[
-            styles.transactionAmount,
-            transaction.type === 'income'
-              ? styles.amountPositive
-              : styles.amountNegative,
-          ]}
-        >
-          {transaction.type === 'income' ? '+' : '-'}$
-          {transaction.amount.toLocaleString()}
-        </Text>
-      </TouchableOpacity>
-    ))
-  )}
-</View>
 
         <View style={styles.bottomSpacing} />
       </ScrollView>
@@ -412,7 +412,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6B7280',
     marginBottom: 2,
-    textTransform: 'capitalize',
   },
   transactionDate: {
     fontSize: 12,

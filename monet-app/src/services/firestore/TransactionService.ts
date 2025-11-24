@@ -1,4 +1,3 @@
-// src/services/firestore/TransactionService.ts
 import { 
   collection, 
   addDoc, 
@@ -8,9 +7,9 @@ import {
   limit,
   getDocs,
   doc,
+  getDoc,
   updateDoc,
   deleteDoc,
-  Timestamp
 } from 'firebase/firestore';
 import { db } from '@/FirebaseConfig';
 import { Transaction } from '@/src/models/Transaction';
@@ -37,11 +36,24 @@ export class TransactionService {
   }
 
   /**
+   * Obtiene una transacción por ID
+   */
+  static async getTransactionById(id: string): Promise<Transaction | null> {
+    const docSnap = await getDoc(doc(db, this.COLLECTION, id));
+    if (!docSnap.exists()) return null;
+    
+    return {
+      id: docSnap.id,
+      ...docSnap.data(),
+    } as Transaction;
+  }
+
+  /**
    * Obtiene las transacciones de un usuario
    */
   static async getUserTransactions(
     userId: string,
-    limitCount: number = 10
+    limitCount: number = 50
   ): Promise<Transaction[]> {
     const q = query(
       collection(db, this.COLLECTION),
