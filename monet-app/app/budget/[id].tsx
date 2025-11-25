@@ -127,12 +127,12 @@ export default function BudgetDetailScreen() {
     const remaining = budget.amount - spent;
 
     const message = `
-📊 Presupuesto: ${categoryName}
-💰 Límite: ${formatCurrency(budget.amount)}
-💸 Gastado: ${formatCurrency(spent)} (${Math.round(percentage)}%)
-💵 Disponible: ${formatCurrency(Math.max(remaining, 0))}
-📝 Descripción: ${budget.description}
-📅 Período: Mensual
+    Presupuesto: ${categoryName}
+    Límite: ${formatCurrency(budget.amount)}
+    Gastado: ${formatCurrency(spent)} (${Math.round(percentage)}%)
+    Disponible: ${formatCurrency(Math.max(remaining, 0))}
+    Descripción: ${budget.description}
+    Período: Mensual
     `.trim();
 
     try {
@@ -275,7 +275,7 @@ export default function BudgetDetailScreen() {
               style={[
                 styles.progressBar,
                 {
-                  width: ${Math.min(percentage, 100)}%,
+                  width: `${Math.min(percentage, 100)}%`,
                   backgroundColor: getProgressColor(),
                 },
               ]}
@@ -293,8 +293,8 @@ export default function BudgetDetailScreen() {
               ]}
             >
               {remaining >= 0
-                ? ${formatCurrency(remaining)} disponible
-                : ${formatCurrency(Math.abs(remaining))} excedido}
+                ? `${formatCurrency(remaining)} disponible`
+                : `${formatCurrency(Math.abs(remaining))} excedido`}
             </Text>
           </View>
         </View>

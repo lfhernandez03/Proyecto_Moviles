@@ -1,4 +1,5 @@
 export interface Budget {
+  description: any;
   id: string;
   userId: string;
   category: string;
