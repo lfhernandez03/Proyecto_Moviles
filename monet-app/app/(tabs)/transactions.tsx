@@ -36,6 +36,7 @@ export default function TransactionsView() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Transacciones</Text>
+        <Text style={styles.headerSubtitle}>Maneja tus movimientos</Text>
         <TouchableOpacity 
           style={styles.addButton}
           onPress={navigateToAddTransaction}
@@ -186,6 +187,10 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#1F2937',
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: "#6B7280",
   },
   addButton: {
     padding: 4,
