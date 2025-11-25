@@ -69,6 +69,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="goals"
+        options={{
+          title: 'Objetivos',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="flag-outline" size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="config"
         options={{
           title: 'Ajustes',
