@@ -20,7 +20,6 @@ export const useConfigViewModel = () => {
     budgetExceededNotifications: true,
     dailyReminder: false,
     hideAmounts: false,
-    biometricAuth: false,
   });
   const [loading, setLoading] = useState(false);
 
@@ -36,7 +35,6 @@ export const useConfigViewModel = () => {
           budgetExceededNotifications: userSettings.budgetExceededNotifications,
           dailyReminder: userSettings.dailyReminder,
           hideAmounts: userSettings.hideAmounts,
-          biometricAuth: userSettings.biometricAuth,
         });
       }
     } catch (error) {
