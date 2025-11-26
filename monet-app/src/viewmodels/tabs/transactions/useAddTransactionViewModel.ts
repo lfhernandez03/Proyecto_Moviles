@@ -1,4 +1,3 @@
-// src/viewmodels/tabs/transactions/useAddTransactionViewModel.ts
 import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { router } from 'expo-router';
@@ -6,6 +5,7 @@ import { AuthService } from '@/src/services/auth/AuthService';
 import { TransactionService } from '@/src/services/firestore/TransactionService';
 import { CategoryService } from '@/src/services/firestore/CategoryService';
 import { Category } from '@/src/models/Category';
+import { checkBudgetExceeded } from '../../../utils/notificationHelper';
 
 type TransactionType = 'expense' | 'income';
 
@@ -125,6 +125,13 @@ export const useAddTransactionViewModel = () => {
       console.log('Enviando transacción:', transactionData);
 
       await TransactionService.createTransaction(transactionData);
+
+      // Verificar notificaciones de presupuesto si es un gasto
+      if (type === 'expense') {
+        checkBudgetExceeded(currentUser.uid).catch((error: Error) => {
+          console.error('Error al verificar presupuesto:', error);
+        });
+      }
 
       Alert.alert(
         '¡Éxito!',

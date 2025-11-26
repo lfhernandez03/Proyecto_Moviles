@@ -1,20 +1,24 @@
 // app/(tabs)/transactions.tsx
-import React from 'react';
+import React from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
   RefreshControl,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { ThemedView } from '@/components/themed-view';
-import { useTransactionsViewModel } from '@/src/viewmodels/tabs/transactions/useTransactionsViewModel';
-import { Transaction } from '@/src/models/Transaction';
-import { formatSignedCurrency } from '@/src/utils/currency';
+  ActivityIndicator,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { ThemedView } from "@/components/themed-view";
+import {
+  PageHeader,
+  SearchBar,
+  TransactionCard,
+  EmptyState,
+} from "@/components/ui";
+import { useTransactionsViewModel } from "@/src/viewmodels/tabs/transactions/useTransactionsViewModel";
+import { Transaction } from "@/src/models/Transaction";
 
 export default function TransactionsView() {
   const {
@@ -34,135 +38,116 @@ export default function TransactionsView() {
   return (
     <ThemedView style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Transacciones</Text>
-        <Text style={styles.headerSubtitle}>Maneja tus movimientos</Text>
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={navigateToAddTransaction}
-        >
-          <Ionicons name="add-circle" size={32} color="#10B981" />
-        </TouchableOpacity>
-      </View>
+      <PageHeader title="Transacciones" subtitle="Maneja tus movimientos" />
 
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <Ionicons name="search-outline" size={20} color="#9CA3AF" style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Buscar transacciones"
-          placeholderTextColor="#9CA3AF"
-          value={searchQuery}
-          onChangeText={handleSearchChange}
-        />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity onPress={() => handleSearchChange('')}>
-            <Ionicons name="close-circle" size={20} color="#9CA3AF" />
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Tabs */}
-      <View style={styles.tabsContainer}>
-        <TouchableOpacity
-          style={[styles.tab, selectedTab === 'Todas' && styles.tabActive]}
-          onPress={() => handleTabChange('Todas')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'Todas' && styles.tabTextActive]}>
-            Todas
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, selectedTab === 'Ingresos' && styles.tabActive]}
-          onPress={() => handleTabChange('Ingresos')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'Ingresos' && styles.tabTextActive]}>
-            Ingresos
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, selectedTab === 'Gastos' && styles.tabActive]}
-          onPress={() => handleTabChange('Gastos')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'Gastos' && styles.tabTextActive]}>
-            Gastos
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Transactions List */}
-      <ScrollView 
-        style={styles.transactionsList} 
+      <ScrollView
+        style={styles.scrollView}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={loading} onRefresh={refreshData} />
         }
       >
-        {loading && filteredTransactions.length === 0 ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#10B981" />
-            <Text style={styles.loadingText}>Cargando transacciones...</Text>
+        {/* Search Bar */}
+        <SearchBar
+          value={searchQuery}
+          onChangeText={handleSearchChange}
+          placeholder="Buscar transacciones"
+        />
+
+        {/* Crear nueva transacción */}
+        <TouchableOpacity
+          style={styles.createButton}
+          onPress={navigateToAddTransaction}
+        >
+          <Text style={styles.createButtonText}>Crear nueva transacción</Text>
+          <View style={styles.createIcon}>
+            <Ionicons name="add-circle" size={28} color="#10B981" />
           </View>
-        ) : filteredTransactions.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="receipt-outline" size={64} color="#9CA3AF" />
-            <Text style={styles.emptyStateTitle}>
-              {searchQuery ? 'No se encontraron resultados' : 'No hay transacciones'}
-            </Text>
-            <Text style={styles.emptyStateSubtitle}>
-              {searchQuery 
-                ? 'Intenta con otros términos de búsqueda'
-                : 'Comienza agregando tu primera transacción'}
-            </Text>
-            {!searchQuery && (
-              <TouchableOpacity 
-                style={styles.emptyStateButton}
-                onPress={navigateToAddTransaction}
-              >
-                <Ionicons name="add-circle-outline" size={20} color="#fff" />
-                <Text style={styles.emptyStateButtonText}>
-                  Agregar Transacción
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        ) : (
-          filteredTransactions.map((transaction: Transaction) => (
-            <TouchableOpacity 
-              key={transaction.id} 
-              style={styles.transactionItem}
-              onPress={() => navigateToTransactionDetail(transaction.id)}
+        </TouchableOpacity>
+
+        {/* Tabs */}
+        <View style={styles.tabsContainer}>
+          <TouchableOpacity
+            style={[styles.tab, selectedTab === "Todas" && styles.tabActive]}
+            onPress={() => handleTabChange("Todas")}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === "Todas" && styles.tabTextActive,
+              ]}
             >
-              <View style={[
-                styles.transactionIcon, 
-                { backgroundColor: getCategoryColor(transaction.category) }
-              ]}>
-                <Text style={styles.transactionEmoji}>
-                  {transaction.icon || '📝'}
-                </Text>
-              </View>
-              <View style={styles.transactionInfo}>
-                <Text style={styles.transactionTitle}>
-                  {transaction.description}
-                </Text>
-                <Text style={styles.transactionCategory}>
-                  {transaction.category}
-                </Text>
-                <Text style={styles.transactionDate}>
-                  {formatRelativeDate(transaction.date)}
-                </Text>
-              </View>
-              <Text style={[
-                styles.transactionAmount,
-                transaction.type === 'income' 
-                  ? styles.amountPositive 
-                  : styles.amountNegative
-              ]}>
-                {formatSignedCurrency(transaction.amount, transaction.type)}
-              </Text>
-            </TouchableOpacity>
-          ))
-        )}
+              Todas
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, selectedTab === "Ingresos" && styles.tabActive]}
+            onPress={() => handleTabChange("Ingresos")}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === "Ingresos" && styles.tabTextActive,
+              ]}
+            >
+              Ingresos
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, selectedTab === "Gastos" && styles.tabActive]}
+            onPress={() => handleTabChange("Gastos")}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                selectedTab === "Gastos" && styles.tabTextActive,
+              ]}
+            >
+              Gastos
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Transactions List */}
+        <View style={styles.transactionsList}>
+          {loading && filteredTransactions.length === 0 ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#10B981" />
+              <Text style={styles.loadingText}>Cargando transacciones...</Text>
+            </View>
+          ) : filteredTransactions.length === 0 ? (
+            <EmptyState
+              icon="receipt-outline"
+              title={
+                searchQuery
+                  ? "No se encontraron resultados"
+                  : "No hay transacciones"
+              }
+              description={
+                searchQuery
+                  ? "Intenta con otros términos de búsqueda"
+                  : "Comienza agregando tu primera transacción"
+              }
+              actionLabel={!searchQuery ? "Agregar Transacción" : undefined}
+              onAction={!searchQuery ? navigateToAddTransaction : undefined}
+            />
+          ) : (
+            filteredTransactions.map((transaction: Transaction) => (
+              <TransactionCard
+                key={transaction.id}
+                id={transaction.id}
+                type={transaction.type}
+                category={transaction.category}
+                description={transaction.description}
+                amount={transaction.amount}
+                date={transaction.date}
+                categoryColor={getCategoryColor(transaction.category)}
+                onPress={() => navigateToTransactionDetail(transaction.id)}
+                formatRelativeDate={formatRelativeDate}
+              />
+            ))
+          )}
+        </View>
         <View style={styles.bottomSpacing} />
       </ScrollView>
     </ThemedView>
@@ -172,21 +157,24 @@ export default function TransactionsView() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: "#F9FAFB",
+  },
+  scrollView: {
+    flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#1F2937',
+    fontWeight: "bold",
+    color: "#1F2937",
   },
   headerSubtitle: {
     fontSize: 14,
@@ -196,9 +184,9 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     marginHorizontal: 20,
     marginTop: 16,
     marginBottom: 16,
@@ -206,7 +194,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: "#E5E7EB",
   },
   searchIcon: {
     marginRight: 8,
@@ -214,10 +202,32 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#1F2937',
+    color: "#1F2937",
+  },
+  createButton: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    marginHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 24,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#10B981",
+    borderStyle: "dashed",
+  },
+  createButtonText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#1F2937",
+  },
+  createIcon: {
+    marginLeft: 8,
   },
   tabsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: 20,
     marginBottom: 16,
     gap: 8,
@@ -226,57 +236,57 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: "#E5E7EB",
   },
   tabActive: {
-    backgroundColor: '#10B981',
-    borderColor: '#10B981',
+    backgroundColor: "#10B981",
+    borderColor: "#10B981",
   },
   tabText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#6B7280',
+    fontWeight: "500",
+    color: "#6B7280",
   },
   tabTextActive: {
-    color: '#fff',
+    color: "#fff",
   },
   transactionsList: {
     flex: 1,
     paddingHorizontal: 20,
   },
   loadingContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 48,
   },
   loadingText: {
     marginTop: 16,
     fontSize: 14,
-    color: '#6B7280',
+    color: "#6B7280",
   },
   emptyState: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 64,
     paddingHorizontal: 32,
   },
   emptyStateTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1F2937',
+    fontWeight: "600",
+    color: "#1F2937",
     marginTop: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   emptyStateSubtitle: {
     fontSize: 14,
-    color: '#6B7280',
+    color: "#6B7280",
     marginTop: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   emptyStateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#10B981',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#10B981",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -284,18 +294,18 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   emptyStateButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   transactionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
@@ -305,8 +315,8 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   transactionEmoji: {
@@ -317,29 +327,29 @@ const styles = StyleSheet.create({
   },
   transactionTitle: {
     fontSize: 15,
-    fontWeight: '600',
-    color: '#1F2937',
+    fontWeight: "600",
+    color: "#1F2937",
     marginBottom: 2,
   },
   transactionCategory: {
     fontSize: 13,
-    color: '#6B7280',
+    color: "#6B7280",
     marginBottom: 2,
-    textTransform: 'capitalize',
+    textTransform: "capitalize",
   },
   transactionDate: {
     fontSize: 12,
-    color: '#9CA3AF',
+    color: "#9CA3AF",
   },
   transactionAmount: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   amountPositive: {
-    color: '#10B981',
+    color: "#10B981",
   },
   amountNegative: {
-    color: '#EF4444',
+    color: "#EF4444",
   },
   bottomSpacing: {
     height: 20,

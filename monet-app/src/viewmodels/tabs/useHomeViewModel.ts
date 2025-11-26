@@ -6,6 +6,7 @@ import { TransactionService } from '@/src/services/firestore/TransactionService'
 import { Transaction, TransactionSummary } from '@/src/models/Transaction';
 import { formatCurrency } from '@/src/utils/currency';
 import { NotificationHelper } from '@/src/utils/notificationHelper';
+import { UserSettingsService } from '@/src/services/firestore/UserSettingsService';
 
 export const useHomeViewModel = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -20,6 +21,23 @@ export const useHomeViewModel = () => {
   const [balanceVisible, setBalanceVisible] = useState(true);
 
   const currentUser = AuthService.getCurrentUser();
+
+  /**
+   * Carga la configuración del usuario
+   */
+  const loadUserSettings = async () => {
+    if (!currentUser) return;
+
+    try {
+      const userSettings = await UserSettingsService.getUserSettings(currentUser.uid);
+      if (userSettings) {
+        // Invertir hideAmounts porque balanceVisible es lo opuesto
+        setBalanceVisible(!userSettings.hideAmounts);
+      }
+    } catch (error) {
+      console.error('Error al cargar configuración:', error);
+    }
+  };
 
   /**
    * Carga las transacciones del usuario
@@ -76,8 +94,24 @@ export const useHomeViewModel = () => {
   /**
    * Alterna la visibilidad del balance
    */
-  const toggleBalanceVisibility = () => {
-    setBalanceVisible(!balanceVisible);
+  const toggleBalanceVisibility = async () => {
+    if (!currentUser) return;
+
+    const newValue = !balanceVisible;
+    setBalanceVisible(newValue);
+
+    try {
+      // Guardar en Firebase (invertir porque hideAmounts es lo opuesto a balanceVisible)
+      await UserSettingsService.updateSetting(
+        currentUser.uid,
+        'hideAmounts',
+        !newValue
+      );
+    } catch (error) {
+      console.error('Error al actualizar visibilidad:', error);
+      // Revertir si falla
+      setBalanceVisible(!newValue);
+    }
   };
 
   /**
@@ -127,6 +161,7 @@ export const useHomeViewModel = () => {
 
   // Cargar datos al montar
   useEffect(() => {
+    loadUserSettings();
     loadTransactions();
   }, []);
 

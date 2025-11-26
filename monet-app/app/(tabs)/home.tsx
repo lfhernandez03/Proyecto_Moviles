@@ -6,10 +6,10 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
-  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemedView } from "@/components/themed-view";
+import { PageHeader, TransactionCard, EmptyState } from "@/components/ui";
 import { useHomeViewModel } from "@/src/viewmodels/tabs/useHomeViewModel";
 import { Transaction } from "@/src/models/Transaction";
 
@@ -65,24 +65,14 @@ export default function HomeView() {
   return (
     <ThemedView style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>
-            ¡Hola, {currentUser?.displayName?.split(" ")[0] || "Usuario"}!
-          </Text>
-          <Text style={styles.headerSubtitle}>Gestiona tus finanzas</Text>
-        </View>
-        <TouchableOpacity
-          style={styles.eyeButton}
-          onPress={toggleBalanceVisibility}
-        >
-          <Ionicons
-            name={balanceVisible ? "eye-outline" : "eye-off-outline"}
-            size={24}
-            color="#6B7280"
-          />
-        </TouchableOpacity>
-      </View>
+      <PageHeader
+        title={`¡Hola, ${currentUser?.displayName?.split(" ")[0] || "Usuario"}!`}
+        subtitle="Gestiona tus finanzas"
+        rightAction={{
+          icon: balanceVisible ? "eye-outline" : "eye-off-outline",
+          onPress: toggleBalanceVisibility,
+        }}
+      />
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
@@ -180,61 +170,28 @@ export default function HomeView() {
         {/* Transactions List */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Transacciones Recientes</Text>
-          {loading && transactions.length === 0 ? (
-            <ActivityIndicator size="large" color="#10B981" />
-          ) : transactions.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Ionicons name="receipt-outline" size={48} color="#9CA3AF" />
-              <Text style={styles.emptyStateText}>
-                No hay transacciones aún
-              </Text>
-              <Text style={styles.emptyStateSubtext}>
-                Comienza agregando tu primer ingreso o gasto
-              </Text>
-            </View>
+          {transactions.length === 0 ? (
+            <EmptyState
+              icon="receipt-outline"
+              title="No hay transacciones aún"
+              description="Comienza agregando tu primer ingreso o gasto"
+              actionLabel="Agregar transacción"
+              onAction={navigateToAddExpense}
+            />
           ) : (
             transactions.map((transaction: Transaction) => (
-              <TouchableOpacity
+              <TransactionCard
                 key={transaction.id}
-                style={styles.transactionItem}
+                id={transaction.id}
+                type={transaction.type}
+                category={formatCategoryName(transaction.category)}
+                description={transaction.description}
+                amount={transaction.amount}
+                date={transaction.date}
+                categoryColor={transaction.type === 'income' ? '#10B981' : '#EF4444'}
                 onPress={() => navigateToTransactionDetail(transaction.id)}
-              >
-                <View
-                  style={[
-                    styles.transactionIcon,
-                    {
-                      backgroundColor:
-                        transaction.type === "income" ? "#D1FAE5" : "#FEE2E2",
-                    },
-                  ]}
-                >
-                  <Text style={styles.transactionEmoji}>
-                    {transaction.icon || "📝"}
-                  </Text>
-                </View>
-                <View style={styles.transactionInfo}>
-                  <Text style={styles.transactionTitle}>
-                    {transaction.description}
-                  </Text>
-                  <Text style={styles.transactionSubtitle}>
-                    {formatCategoryName(transaction.category)}
-                  </Text>
-                  <Text style={styles.transactionDate}>
-                    {formatDate(transaction.date)}
-                  </Text>
-                </View>
-                <Text
-                  style={[
-                    styles.transactionAmount,
-                    transaction.type === 'income'
-                      ? styles.amountPositive
-                      : styles.amountNegative,
-                  ]}
-                >
-                  {transaction.type === 'income' ? '+' : '-'}$
-                  {transaction.amount.toLocaleString('es-MX')}
-                </Text>
-              </TouchableOpacity>
+                formatRelativeDate={formatDate}
+              />
             ))
           )}
         </View>

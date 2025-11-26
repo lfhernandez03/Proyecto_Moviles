@@ -18,6 +18,7 @@ import { CategoryService } from '@/src/services/firestore/CategoryService';
 import { AuthService } from '@/src/services/auth/AuthService';
 import { Transaction } from '@/src/models/Transaction';
 import { formatCurrency } from '@/src/utils/currency';
+import { NotificationHelper } from '@/src/utils/notificationHelper';
 
 export default function TransactionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -90,6 +91,16 @@ export default function TransactionDetailScreen() {
     try {
       setDeleting(true);
       await TransactionService.deleteTransaction(transaction.id);
+
+      // Verificar notificaciones de presupuesto si era un gasto
+      if (transaction.type === 'expense') {
+        const currentUser = AuthService.getCurrentUser();
+        if (currentUser) {
+          NotificationHelper.checkBudgetExceeded(currentUser.uid).catch((error: Error) => {
+            console.error('Error al verificar presupuesto:', error);
+          });
+        }
+      }
 
       Alert.alert(
         '¡Eliminado!',
@@ -431,17 +442,17 @@ const styles = StyleSheet.create({
   },
   amountSection: {
     alignItems: 'center',
-    paddingBottom: 32,
+    paddingBottom: 24,
   },
   amount: {
-    fontSize: 48,
+    fontSize: 40,
     fontWeight: 'bold',
   },
   detailsCard: {
     backgroundColor: '#fff',
     marginHorizontal: 20,
     borderRadius: 12,
-    padding: 20,
+    padding: 16,
     marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -451,15 +462,13 @@ const styles = StyleSheet.create({
   },
   detailRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
   },
   detailIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
+    width: 36,
+    height: 36,
+    borderRadius: 8,
     backgroundColor: '#F3F4F6',
     justifyContent: 'center',
     alignItems: 'center',
@@ -469,8 +478,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   detailLabel: {
-    fontSize: 12,
-    color: '#6B7280',
+    fontSize: 11,
+    color: '#9CA3AF',
     marginBottom: 2,
   },
   detailValue: {
@@ -483,7 +492,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     marginHorizontal: 20,
     borderRadius: 12,
-    padding: 20,
+    padding: 16,
     marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },

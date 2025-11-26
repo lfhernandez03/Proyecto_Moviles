@@ -2,7 +2,6 @@ import React from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -11,8 +10,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemedView } from '@/components/themed-view';
+import { PageHeader, SearchBar, SummaryCard, GoalCard, EmptyState } from '@/components/ui';
 import { useGoalsViewModel } from '@/src/viewmodels/tabs/goals/useGoalsViewModel';
-import { formatCurrency } from '@/src/utils/currency';
 
 export default function FinancialGoalsView() {
   const {
@@ -23,7 +22,6 @@ export default function FinancialGoalsView() {
     handleSearchChange,
     navigateToCreateGoal,
     navigateToGoalDetail,
-    calculateProgress,
     refreshData,
   } = useGoalsViewModel();
 
@@ -33,13 +31,10 @@ export default function FinancialGoalsView() {
 
   return (
     <ThemedView style={styles.container}>
-      {/* Header Sticky */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Objetivos Financieros</Text>
-          <Text style={styles.headerSubtitle}>Alcanza tus metas</Text>
-        </View>
-      </View>
+      <PageHeader
+        title="Objetivos Financieros"
+        subtitle="Alcanza tus metas"
+      />
 
       <ScrollView
         style={styles.scrollView}
@@ -49,57 +44,27 @@ export default function FinancialGoalsView() {
         }
       >
         {/* Resumen Total */}
-        <View style={styles.summaryCard}>
-          <View style={styles.summaryHeader}>
-            <Text style={styles.summaryLabel}>Progreso Total</Text>
-            <Text style={styles.summaryPercentage}>
-              {Math.round(summary.overallProgress)}%
-            </Text>
-          </View>
-          <View style={styles.summaryAmounts}>
-            <Text style={styles.summarySaved}>
-              ${summary.totalSaved.toLocaleString()}
-            </Text>
-            <Text style={styles.summaryTotal}>
-              / ${summary.totalTarget.toLocaleString()}
-            </Text>
-          </View>
-          <View style={styles.summaryProgressBar}>
-            <View
-              style={[
-                styles.summaryProgress,
-                {
-                  width: `${Math.min(summary.overallProgress, 100)}%`,
-                  backgroundColor: '#3B82F6',
-                },
-              ]}
-            />
-          </View>
-          <View style={styles.summaryStats}>
-            <View style={styles.summaryStatItem}>
-              <Text style={styles.summaryStatValue}>
-                ${Math.abs(summary.remaining).toLocaleString()}
-              </Text>
-              <Text style={styles.summaryStatLabel}>
-                Por ahorrar
-              </Text>
-            </View>
-            <View style={styles.summaryStatDivider} />
-            <View style={styles.summaryStatItem}>
-              <Text style={styles.summaryStatValue}>
-                {summary.completedGoals}
-              </Text>
-              <Text style={styles.summaryStatLabel}>Completados</Text>
-            </View>
-            <View style={styles.summaryStatDivider} />
-            <View style={styles.summaryStatItem}>
-              <Text style={styles.summaryStatValue}>
-                {summary.activeGoals}
-              </Text>
-              <Text style={styles.summaryStatLabel}>Activos</Text>
-            </View>
-          </View>
-        </View>
+        <SummaryCard
+          title="Progreso Total"
+          percentage={Math.round(summary.overallProgress)}
+          currentAmount={summary.totalSaved}
+          totalAmount={summary.totalTarget}
+          progressColor="#3B82F6"
+          stats={[
+            {
+              label: 'Por ahorrar',
+              value: `$${Math.abs(summary.remaining).toLocaleString()}`,
+            },
+            {
+              label: 'Completados',
+              value: summary.completedGoals.toString(),
+            },
+            {
+              label: 'Activos',
+              value: summary.activeGoals.toString(),
+            },
+          ]}
+        />
 
         {/* Create New Goal Button */}
         <TouchableOpacity
@@ -113,26 +78,11 @@ export default function FinancialGoalsView() {
         </TouchableOpacity>
 
         {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <Ionicons
-            name="search-outline"
-            size={20}
-            color="#9CA3AF"
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar objetivos"
-            placeholderTextColor="#9CA3AF"
-            value={searchQuery}
-            onChangeText={handleSearchChange}
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => handleSearchChange('')}>
-              <Ionicons name="close-circle" size={20} color="#9CA3AF" />
-            </TouchableOpacity>
-          )}
-        </View>
+        <SearchBar
+          value={searchQuery}
+          onChangeText={handleSearchChange}
+          placeholder="Buscar objetivos"
+        />
 
         {/* Goals List */}
         {loading && goals.length === 0 ? (
@@ -141,113 +91,31 @@ export default function FinancialGoalsView() {
             <Text style={styles.loadingText}>Cargando objetivos...</Text>
           </View>
         ) : filteredGoals.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="flag-outline" size={64} color="#9CA3AF" />
-            <Text style={styles.emptyStateTitle}>
-              {searchQuery ? 'No se encontraron resultados' : 'No hay objetivos'}
-            </Text>
-            <Text style={styles.emptyStateSubtitle}>
-              {searchQuery
+          <EmptyState
+            icon="flag-outline"
+            title={searchQuery ? 'No se encontraron resultados' : 'No hay objetivos'}
+            description={
+              searchQuery
                 ? 'Intenta con otros términos de búsqueda'
-                : 'Comienza creando tu primer objetivo financiero'}
-            </Text>
-            {!searchQuery && (
-              <TouchableOpacity
-                style={styles.emptyStateButton}
-                onPress={navigateToCreateGoal}
-              >
-                <Ionicons name="add-circle-outline" size={20} color="#fff" />
-                <Text style={styles.emptyStateButtonText}>
-                  Crear Objetivo
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
+                : 'Comienza creando tu primer objetivo financiero'
+            }
+            actionLabel={!searchQuery ? 'Crear Objetivo' : undefined}
+            onAction={!searchQuery ? navigateToCreateGoal : undefined}
+          />
         ) : (
           <View style={styles.goalsList}>
-            {filteredGoals.map((goal) => {
-              const progress = calculateProgress(goal);
-              const isCompleted = goal.currentAmount >= goal.targetAmount;
-
-              return (
-                <TouchableOpacity
-                  key={goal.id}
-                  style={styles.goalCard}
-                  onPress={() => navigateToGoalDetail(goal.id!)}
-                >
-                  {/* Goal Header */}
-                  <View style={styles.goalHeader}>
-                    <View
-                      style={[
-                        styles.goalIcon,
-                        isCompleted && styles.goalIconCompleted,
-                      ]}
-                    >
-                      <Text style={styles.goalEmoji}>{goal.icon || '🎯'}</Text>
-                    </View>
-                    <View style={styles.goalTitleContainer}>
-                      <Text style={styles.goalTitle}>{goal.title}</Text>
-                      {goal.deadline && (
-                        <Text style={styles.goalDeadline}>
-                          Meta: {new Date(goal.deadline).toLocaleDateString('es-ES')}
-                        </Text>
-                      )}
-                    </View>
-                    {isCompleted && (
-                      <View style={styles.completedBadge}>
-                        <Ionicons name="checkmark-circle" size={24} color="#10B981" />
-                      </View>
-                    )}
-                  </View>
-
-                  {/* Amount */}
-                  <View style={styles.amountContainer}>
-                    <Text style={styles.amountCurrent}>
-                      {formatCurrency(goal.currentAmount)}
-                    </Text>
-                    <Text style={styles.amountTarget}>
-                      / {formatCurrency(goal.targetAmount)}
-                    </Text>
-                  </View>
-
-                  {/* Progress Bar */}
-                  <View style={styles.progressBarContainer}>
-                    <View
-                      style={[
-                        styles.progressBar,
-                        {
-                          width: `${Math.min(progress, 100)}%`,
-                          backgroundColor: isCompleted ? '#10B981' : '#3B82F6',
-                        },
-                      ]}
-                    />
-                  </View>
-
-                  {/* Progress Info */}
-                  <View style={styles.progressInfo}>
-                    <Text style={styles.progressPercentage}>
-                      {Math.round(progress)}% completado
-                    </Text>
-                    <Text style={styles.progressRemaining}>
-                      Faltan {formatCurrency(Math.max(0, goal.targetAmount - goal.currentAmount))}
-                    </Text>
-                  </View>
-
-                  {/* Add Funds Button */}
-                  {!isCompleted && (
-                    <TouchableOpacity
-                      style={styles.addFundsButton}
-                      onPress={() => navigateToGoalDetail(goal.id!)}
-                    >
-                      <Ionicons name="add-outline" size={20} color="#fff" />
-                      <Text style={styles.addFundsButtonText}>
-                        Agregar Fondos
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
+            {filteredGoals.map((goal) => (
+              <GoalCard
+                key={goal.id}
+                title={goal.title}
+                description={goal.description}
+                currentAmount={goal.currentAmount}
+                targetAmount={goal.targetAmount}
+                deadline={goal.deadline}
+                completedAt={goal.completedAt}
+                onPress={() => navigateToGoalDetail(goal.id!)}
+              />
+            ))}
           </View>
         )}
 
@@ -370,7 +238,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     marginHorizontal: 20,
-    marginBottom: 16,
+    marginTop: 20,
+    marginBottom: 24,
     padding: 16,
     borderRadius: 12,
     borderWidth: 2,
@@ -449,6 +318,7 @@ const styles = StyleSheet.create({
   },
   goalsList: {
     paddingHorizontal: 20,
+    paddingVertical: 16,
   },
   goalCard: {
     backgroundColor: '#fff',

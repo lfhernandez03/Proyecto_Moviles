@@ -3,7 +3,6 @@ import React from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -12,6 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemedView } from "@/components/themed-view";
+import { PageHeader, SearchBar, SummaryCard, BudgetCard, EmptyState } from "@/components/ui";
 import { useBudgetViewModel } from "@/src/viewmodels/tabs/budget/useBudgetViewModel";
 import { Budget } from "@/src/models/Budget";
 import { formatCurrency } from "@/src/utils/currency";
@@ -34,15 +34,10 @@ export default function BudgetView() {
 
   return (
     <ThemedView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Presupuesto</Text>
-          <Text style={styles.headerSubtitle}>
-            Controla tus gastos mensuales
-          </Text>
-        </View>
-      </View>
+      <PageHeader
+        title="Presupuesto"
+        subtitle="Controla tus gastos mensuales"
+      />
 
       <ScrollView
         style={styles.scrollView}
@@ -52,50 +47,23 @@ export default function BudgetView() {
         }
       >
         {/* Resumen Total */}
-        <View style={styles.summaryCard}>
-          <View style={styles.summaryHeader}>
-            <Text style={styles.summaryLabel}>Presupuesto Total</Text>
-            <Text style={styles.summaryPercentage}>
-              {Math.round(summary.percentage)}%
-            </Text>
-          </View>
-          <View style={styles.summaryAmounts}>
-            <Text style={styles.summarySpent}>
-              {formatCurrency(summary.totalSpent, false)}
-            </Text>
-            <Text style={styles.summaryTotal}>
-              / {formatCurrency(summary.totalBudget, false)}
-            </Text>
-          </View>
-          <View style={styles.summaryProgressBar}>
-            <View
-              style={[
-                styles.summaryProgress,
-                {
-                  width: `${Math.min(summary.percentage, 100)}%`,
-                  backgroundColor: getPercentageColor(summary.percentage),
-                },
-              ]}
-            />
-          </View>
-          <View style={styles.summaryStats}>
-            <View style={styles.summaryStatItem}>
-              <Text style={styles.summaryStatValue}>
-                {formatCurrency(Math.abs(summary.remainingBudget), false)}
-              </Text>
-              <Text style={styles.summaryStatLabel}>
-                {summary.remainingBudget >= 0 ? 'Disponible' : 'Excedido'}
-              </Text>
-            </View>
-            <View style={styles.summaryStatDivider} />
-            <View style={styles.summaryStatItem}>
-              <Text style={styles.summaryStatValue}>
-                {summary.categoriesOverBudget}
-              </Text>
-              <Text style={styles.summaryStatLabel}>Sobre presupuesto</Text>
-            </View>
-          </View>
-        </View>
+        <SummaryCard
+          title="Presupuesto Total"
+          percentage={Math.round(summary.percentage)}
+          currentAmount={summary.totalSpent}
+          totalAmount={summary.totalBudget}
+          progressColor={getPercentageColor(summary.percentage)}
+          stats={[
+            {
+              label: summary.remainingBudget >= 0 ? 'Disponible' : 'Excedido',
+              value: formatCurrency(Math.abs(summary.remainingBudget), false),
+            },
+            {
+              label: 'Sobre presupuesto',
+              value: summary.categoriesOverBudget.toString(),
+            },
+          ]}
+        />
 
         {/* Crear nueva categoría */}
         <TouchableOpacity
@@ -113,26 +81,11 @@ export default function BudgetView() {
           <Text style={styles.sectionTitle}>Categorías</Text>
 
           {/* Search Bar */}
-          <View style={styles.searchContainer}>
-            <Ionicons
-              name="search-outline"
-              size={20}
-              color="#9CA3AF"
-              style={styles.searchIcon}
-            />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Buscar categoría"
-              placeholderTextColor="#9CA3AF"
-              value={searchQuery}
-              onChangeText={handleSearchChange}
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => handleSearchChange("")}>
-                <Ionicons name="close-circle" size={20} color="#9CA3AF" />
-              </TouchableOpacity>
-            )}
-          </View>
+          <SearchBar
+            value={searchQuery}
+            onChangeText={handleSearchChange}
+            placeholder="Buscar categoría"
+          />
 
           {/* Budget List */}
           {loading && filteredBudgets.length === 0 ? (
@@ -141,95 +94,29 @@ export default function BudgetView() {
               <Text style={styles.loadingText}>Cargando presupuestos...</Text>
             </View>
           ) : filteredBudgets.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Ionicons name="wallet-outline" size={64} color="#9CA3AF" />
-              <Text style={styles.emptyStateTitle}>
-                {searchQuery
-                  ? "No se encontraron resultados"
-                  : "No hay presupuestos"}
-              </Text>
-              <Text style={styles.emptyStateSubtitle}>
-                {searchQuery
+            <EmptyState
+              icon="wallet-outline"
+              title={searchQuery ? "No se encontraron resultados" : "No hay presupuestos"}
+              description={
+                searchQuery
                   ? "Intenta con otros términos de búsqueda"
-                  : "Comienza creando tu primer presupuesto"}
-              </Text>
-              {!searchQuery && (
-                <TouchableOpacity
-                  style={styles.emptyStateButton}
-                  onPress={navigateToCreateBudget}
-                >
-                  <Ionicons name="add-circle-outline" size={20} color="#fff" />
-                  <Text style={styles.emptyStateButtonText}>
-                    Crear Presupuesto
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
+                  : "Comienza creando tu primer presupuesto"
+              }
+              actionLabel={!searchQuery ? "Crear Presupuesto" : undefined}
+              onAction={!searchQuery ? navigateToCreateBudget : undefined}
+            />
           ) : (
-            filteredBudgets.map((budget: Budget) => {
-              const percentage = calculatePercentage(
-                budget.spent,
-                budget.amount
-              );
-              const color = getPercentageColor(percentage);
-              const overBudget = isOverBudget(budget.spent, budget.amount);
-              const overAmount = getOverBudgetAmount(
-                budget.spent,
-                budget.amount
-              );
-
-              return (
-                <TouchableOpacity
-                  key={budget.id}
-                  style={styles.budgetItem}
-                  onPress={() => navigateToBudgetDetail(budget.id)}
-                >
-                  <View style={styles.budgetHeader}>
-                    <View style={styles.budgetTitleContainer}>
-                      <View style={{ backgroundColor: budget.color }}></View>
-                      <Text style={styles.budgetName}>
-                        {budget.categoryName}
-                      </Text>
-                    </View>
-                    <Text style={[styles.budgetPercentage, { color }]}>
-                      {percentage}%
-                    </Text>
-                  </View>
-
-                  <View style={styles.budgetAmounts}>
-                    <Text style={styles.budgetSpent}>
-                      {formatCurrency(budget.spent, false)}
-                    </Text>
-                    <Text style={styles.budgetTotal}>
-                      / {formatCurrency(budget.amount, false)}
-                    </Text>
-                  </View>
-
-                  {/* Progress Bar */}
-                  <View style={styles.progressBarContainer}>
-                    <View
-                      style={[
-                        styles.progressBar,
-                        {
-                          width: `${Math.min(percentage, 100)}%`,
-                          backgroundColor: color,
-                        },
-                      ]}
-                    />
-                  </View>
-
-                  {/* Over budget warning */}
-                  {overBudget && (
-                    <View style={styles.warningContainer}>
-                      <Ionicons name="warning" size={16} color="#EF4444" />
-                      <Text style={styles.warningText}>
-                        Has excedido tu presupuesto en {formatCurrency(overAmount, false)}
-                      </Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              );
-            })
+            filteredBudgets.map((budget: Budget) => (
+              <BudgetCard
+                key={budget.id}
+                categoryName={budget.categoryName}
+                spent={budget.spent}
+                amount={budget.amount}
+                color={budget.color}
+                period={budget.period}
+                onPress={() => navigateToBudgetDetail(budget.id)}
+              />
+            ))
           )}
         </View>
 

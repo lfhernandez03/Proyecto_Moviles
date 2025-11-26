@@ -41,23 +41,13 @@ export default function AddTransactionScreen() {
         <View style={styles.header}>
           <TouchableOpacity
             onPress={handleClose}
-            style={styles.closeButton}
+            style={styles.headerButton}
             disabled={loading}
           >
-            <Ionicons name="close" size={28} color="#1F2937" />
+            <Ionicons name="arrow-back" size={24} color="#1F2937" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Nueva Transacción</Text>
-          <TouchableOpacity
-            style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-            onPress={handleSave}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.saveButtonText}>Guardar</Text>
-            )}
-          </TouchableOpacity>
+          <View style={styles.headerButton} />
         </View>
         <ScrollView
           style={styles.scrollView}
@@ -196,6 +186,34 @@ export default function AddTransactionScreen() {
               </View>
             )}
           </View>
+
+          {/* Action Buttons */}
+          <View style={styles.actionButtons}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={handleClose}
+              disabled={loading}
+            >
+              <Text style={styles.cancelButtonText}>Cancelar</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.createButton, loading && styles.createButtonDisabled]}
+              onPress={handleSave}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <>
+                  <Ionicons name="checkmark-circle" size={20} color="#fff" />
+                  <Text style={styles.createButtonText}>Guardar</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.bottomSpacing} />
         </ScrollView>
       </KeyboardAvoidingView>
     </ThemedView>
@@ -219,44 +237,27 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 20,
+    paddingBottom: 16,
     backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
   },
-  closeButton: {
+  headerButton: {
     padding: 4,
+    width: 32,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: "bold",
     color: "#1F2937",
   },
-  saveButton: {
-    backgroundColor: "#10B981",
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 8,
-    minWidth: 80,
-    alignItems: "center",
-  },
-  saveButtonDisabled: {
-    opacity: 0.6,
-  },
-  saveButtonText: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "600",
-  },
   content: {
     padding: 20,
   },
   section: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 16,
+    fontWeight: "600",
     color: "#1F2937",
     marginBottom: 12,
   },
@@ -270,8 +271,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderRadius: 12,
     backgroundColor: "#F3F4F6",
   },
@@ -293,27 +294,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 20,
+    paddingVertical: 16,
     backgroundColor: "#fff",
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#E5E7EB",
   },
   amountSymbol: {
-    fontSize: 48,
+    fontSize: 40,
     fontWeight: "bold",
     color: "#1F2937",
     marginRight: 8,
   },
   amountInput: {
-    fontSize: 48,
+    fontSize: 40,
     fontWeight: "bold",
     color: "#1F2937",
     minWidth: 100,
     textAlign: "left",
   },
   currencyLabel: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "600",
     color: "#6B7280",
     marginLeft: 8,
@@ -322,11 +323,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 15,
     color: "#1F2937",
     minHeight: 100,
+    textAlignVertical: "top",
   },
   categoriesContainer: {
     justifyContent: "center",
@@ -338,15 +341,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     borderRadius: 20,
     borderWidth: 2,
     borderColor: "transparent",
   },
   categoryButtonSelected: {
     borderColor: "#1F2937",
-    borderWidth: 3,
+    borderWidth: 2,
   },
   categoryEmoji: {
     fontSize: 18,
@@ -370,5 +373,46 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#047857",
     lineHeight: 20,
+  },
+  actionButtons: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    marginTop: 32,
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#6B7280",
+  },
+  createButton: {
+    flex: 1,
+    flexDirection: "row",
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#10B981",
+    gap: 8,
+  },
+  createButtonDisabled: {
+    opacity: 0.5,
+  },
+  createButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#fff",
+  },
+  bottomSpacing: {
+    height: 40,
   },
 });

@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { AuthService } from '@/src/services/auth/AuthService';
 import { GoalService } from '@/src/services/firestore/GoalService';
 import { Goal } from '@/src/models/Goal';
+import { checkGoalDeadlines } from '../../../utils/notificationHelper';
 
 interface FormData {
   title: string;
@@ -121,6 +122,11 @@ export const useCreateGoalViewModel = () => {
       };
 
       await GoalService.createGoal(goalData);
+
+      // Verificar notificaciones de plazos después de crear
+      checkGoalDeadlines(currentUser.uid).catch((error: Error) => {
+        console.error('Error al verificar plazos:', error);
+      });
 
       Alert.alert(
         '¡Éxito!',

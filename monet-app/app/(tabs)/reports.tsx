@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemedView } from "@/components/themed-view";
+import { PageHeader, EmptyState } from "@/components/ui";
 import { useReportsViewModel } from "@/src/viewmodels/tabs/reports/useReportsViewModel";
 import { formatCurrency } from "@/src/utils/currency";
 
@@ -35,13 +36,10 @@ export default function ReportsScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      {/* Header Sticky */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Reportes</Text>
-          <Text style={styles.headerSubtitle}>Análisis de tus finanzas</Text>
-        </View>
-      </View>
+      <PageHeader
+        title="Reportes"
+        subtitle="Análisis de tus finanzas"
+      />
 
       <ScrollView
         style={styles.scrollView}
@@ -108,13 +106,11 @@ export default function ReportsScreen() {
             <Text style={styles.loadingText}>Cargando reporte...</Text>
           </View>
         ) : !reportData ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="bar-chart-outline" size={64} color="#9CA3AF" />
-            <Text style={styles.emptyStateTitle}>No hay datos</Text>
-            <Text style={styles.emptyStateSubtitle}>
-              Agrega transacciones para ver tu reporte
-            </Text>
-          </View>
+          <EmptyState
+            icon="bar-chart-outline"
+            title="No hay datos"
+            description="Agrega transacciones para ver tu reporte"
+          />
         ) : (
           <>
             {/* Financial Summary */}

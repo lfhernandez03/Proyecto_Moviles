@@ -8,7 +8,6 @@ export interface UserSettings {
   dailyReminder: boolean;
   // Privacidad
   hideAmounts: boolean;
-  biometricAuth: boolean;
   // Otros
   theme?: 'light' | 'dark' | 'auto';
   language?: string;

@@ -295,10 +295,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 20,
+    paddingBottom: 16,
     backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
   },
   headerButton: {
     padding: 4,
@@ -317,10 +315,10 @@ const styles = StyleSheet.create({
   },
   section: {
     paddingHorizontal: 20,
-    marginTop: 24,
+    marginTop: 20,
   },
   label: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: '#374151',
     marginBottom: 8,
@@ -335,7 +333,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    fontSize: 16,
+    fontSize: 15,
     color: '#1F2937',
   },
   inputError: {
@@ -355,7 +353,7 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
   },
   currencySymbol: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#6B7280',
     marginRight: 8,
@@ -363,7 +361,7 @@ const styles = StyleSheet.create({
   amountInput: {
     flex: 1,
     paddingVertical: 12,
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#1F2937',
   },
@@ -380,7 +378,7 @@ const styles = StyleSheet.create({
   },
   datePickerText: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     color: '#9CA3AF',
   },
   datePickerTextSelected: {
@@ -414,8 +412,8 @@ const styles = StyleSheet.create({
   summaryCard: {
     backgroundColor: '#fff',
     marginHorizontal: 20,
-    marginTop: 24,
-    padding: 20,
+    marginTop: 20,
+    padding: 16,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: '#3B82F6',
