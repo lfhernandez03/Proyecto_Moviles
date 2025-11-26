@@ -21,8 +21,8 @@ export default function FinancialGoalsView() {
     loading,
     summary,
     handleSearchChange,
-    //navigateToCreateGoal,
-    //navigateToGoalDetail,
+    navigateToCreateGoal,
+    navigateToGoalDetail,
     calculateProgress,
     refreshData,
   } = useGoalsViewModel();
@@ -104,7 +104,7 @@ export default function FinancialGoalsView() {
         {/* Create New Goal Button */}
         <TouchableOpacity
           style={styles.createButton}
-          //onPress={navigateToCreateGoal}
+          onPress={navigateToCreateGoal}
         >
           <Text style={styles.createButtonText}>Crear nuevo objetivo</Text>
           <View style={styles.createIcon}>
@@ -154,7 +154,7 @@ export default function FinancialGoalsView() {
             {!searchQuery && (
               <TouchableOpacity
                 style={styles.emptyStateButton}
-                //onPress={navigateToCreateGoal}
+                onPress={navigateToCreateGoal}
               >
                 <Ionicons name="add-circle-outline" size={20} color="#fff" />
                 <Text style={styles.emptyStateButtonText}>
@@ -173,7 +173,7 @@ export default function FinancialGoalsView() {
                 <TouchableOpacity
                   key={goal.id}
                   style={styles.goalCard}
-                  //onPress={() => navigateToGoalDetail(goal.id!)}
+                  onPress={() => navigateToGoalDetail(goal.id!)}
                 >
                   {/* Goal Header */}
                   <View style={styles.goalHeader}>
@@ -237,7 +237,7 @@ export default function FinancialGoalsView() {
                   {!isCompleted && (
                     <TouchableOpacity
                       style={styles.addFundsButton}
-                      //onPress={() => navigateToGoalDetail(goal.id!)}
+                      onPress={() => navigateToGoalDetail(goal.id!)}
                     >
                       <Ionicons name="add-outline" size={20} color="#fff" />
                       <Text style={styles.addFundsButtonText}>

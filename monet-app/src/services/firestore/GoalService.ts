@@ -1,3 +1,4 @@
+// src/services/firestore/GoalService.ts
 import {
   collection,
   addDoc,
@@ -8,7 +9,7 @@ import {
   query,
   where,
   orderBy,
-  Timestamp,
+  getDoc,
 } from 'firebase/firestore';
 import { db } from '@/FirebaseConfig';
 import { Goal } from '@/src/models/Goal';
@@ -32,10 +33,10 @@ export class GoalService {
         goalData
       );
 
-      console.log('Objetivo creado:', docRef.id);
+      console.log('✅ Objetivo creado:', docRef.id);
       return docRef.id;
     } catch (error) {
-      console.error('Error al crear objetivo:', error);
+      console.error('❌ Error al crear objetivo:', error);
       throw error;
     }
   }
@@ -61,10 +62,32 @@ export class GoalService {
         } as Goal);
       });
 
-      console.log(` ${goals.length} objetivos cargados`);
+      console.log(`✅ ${goals.length} objetivos cargados`);
       return goals;
     } catch (error) {
-      console.error(' Error al obtener objetivos:', error);
+      console.error('❌ Error al obtener objetivos:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtiene un objetivo por ID
+   */
+  static async getGoalById(goalId: string): Promise<Goal | null> {
+    try {
+      const goalRef = doc(db, this.COLLECTION_NAME, goalId);
+      const goalDoc = await getDoc(goalRef);
+
+      if (goalDoc.exists()) {
+        return {
+          id: goalDoc.id,
+          ...goalDoc.data(),
+        } as Goal;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('❌ Error al obtener objetivo:', error);
       throw error;
     }
   }
@@ -78,15 +101,15 @@ export class GoalService {
   ): Promise<void> {
     try {
       const goalRef = doc(db, this.COLLECTION_NAME, goalId);
-      
+
       await updateDoc(goalRef, {
         ...updates,
         updatedAt: new Date().toISOString(),
       });
 
-      console.log('Objetivo actualizado:', goalId);
+      console.log('✅ Objetivo actualizado:', goalId);
     } catch (error) {
-      console.error('Error al actualizar objetivo:', error);
+      console.error('❌ Error al actualizar objetivo:', error);
       throw error;
     }
   }
@@ -96,9 +119,8 @@ export class GoalService {
    */
   static async addFunds(goalId: string, amount: number): Promise<void> {
     try {
-      const goals = await this.getUserGoals(''); // Necesitamos obtener el objetivo primero
-      const goal = goals.find(g => g.id === goalId);
-      
+      const goal = await this.getGoalById(goalId);
+
       if (!goal) {
         throw new Error('Objetivo no encontrado');
       }
@@ -115,9 +137,9 @@ export class GoalService {
       }
 
       await this.updateGoal(goalId, updates);
-      console.log('Fondos agregados:', amount);
+      console.log('✅ Fondos agregados:', amount);
     } catch (error) {
-      console.error('Error al agregar fondos:', error);
+      console.error('❌ Error al agregar fondos:', error);
       throw error;
     }
   }
@@ -128,9 +150,9 @@ export class GoalService {
   static async deleteGoal(goalId: string): Promise<void> {
     try {
       await deleteDoc(doc(db, this.COLLECTION_NAME, goalId));
-      console.log('Objetivo eliminado:', goalId);
+      console.log('✅ Objetivo eliminado:', goalId);
     } catch (error) {
-      console.error('Error al eliminar objetivo:', error);
+      console.error('❌ Error al eliminar objetivo:', error);
       throw error;
     }
   }

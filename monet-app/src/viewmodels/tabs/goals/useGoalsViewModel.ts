@@ -89,18 +89,21 @@ export const useGoalsViewModel = () => {
 
   /**
    * Navega a la pantalla de crear objetivo
-   * const navigateToCreateGoal = () => {
-    router.push('/goal/create-goal');
+   */
+  const navigateToCreateGoal = () => {
+    router.push('/goals/create-goal');
   };
 
-   */
   
   /**
    * Navega al detalle de un objetivo
-   * const navigateToGoalDetail = (goalId: string) => {
-    router.push(`/goal/${goalId}`);
-  };
    */
+  const navigateToGoalDetail = (goalId: string) => {
+    router.push({
+      pathname: '/goals/[id]',
+      params: { id: goalId },
+    });
+  };
   
 
   /**
@@ -124,16 +127,13 @@ export const useGoalsViewModel = () => {
   }, []);
 
   return {
-    // Estado
     goals,
     searchQuery,
     loading,
     summary,
-
-    // Métodos
     handleSearchChange,
-    //navigateToCreateGoal,
-    //navigateToGoalDetail,
+    navigateToCreateGoal,
+    navigateToGoalDetail,
     calculateProgress,
     refreshData,
   };
