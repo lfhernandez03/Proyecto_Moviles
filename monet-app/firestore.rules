@@ -59,8 +59,14 @@ service cloud.firestore {
       allow create: if isSignedIn() && 
                        request.resource.data.userId == request.auth.uid &&
                        request.resource.data.keys().hasAll([
-                         'userId', 'name', 'displayName', 'icon', 'color'
-                       ]);
+                         'userId', 'name', 'displayName', 'type', 'icon', 'color', 'isCustom'
+                       ]) &&
+                       request.resource.data.type in ['income', 'expense'] &&
+                       request.resource.data.name is string &&
+                       request.resource.data.displayName is string &&
+                       request.resource.data.icon is string &&
+                       request.resource.data.color is string &&
+                       request.resource.data.isCustom is bool;
       
       // Permitir actualización si es el propietario
       allow update: if isSignedIn() && 
