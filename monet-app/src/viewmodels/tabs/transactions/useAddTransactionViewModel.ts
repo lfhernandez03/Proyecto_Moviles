@@ -76,13 +76,6 @@ export const useAddTransactionViewModel = () => {
   };
 
   /**
-   * Obtiene los datos de la categoría seleccionada
-   */
-  const getSelectedCategoryData = (): Category | undefined => {
-    return categories.find(c => c.name === selectedCategory);
-  };
-
-  /**
    * Valida el formulario antes de guardar
    */
   const validateForm = (): string | null => {
@@ -118,21 +111,18 @@ export const useAddTransactionViewModel = () => {
 
     setLoading(true);
     try {
-      const categoryData = getSelectedCategoryData();
-      
+      // Preparar datos con todos los campos requeridos
       const transactionData: any = {
         userId: currentUser.uid,
         type,
         amount: parseFloat(amount),
         description: description.trim(),
+        category: type === 'expense' ? selectedCategory : (selectedCategory || 'salary'),
+        icon: type === 'income' ? 'cash' : 'cart',
         date: new Date().toISOString(),
       };
 
-      if (type === 'expense') {
-        transactionData.category = selectedCategory;
-      } else {
-        transactionData.category = selectedCategory || 'salary';
-      }
+      console.log('Enviando transacción:', transactionData);
 
       await TransactionService.createTransaction(transactionData);
 

@@ -132,8 +132,13 @@ export class GoalService {
       };
 
       // Si alcanzó el objetivo, marcar como completado
-      if (newAmount >= goal.targetAmount && !goal.completedAt) {
+      const wasNotCompleted = !goal.completedAt;
+      if (newAmount >= goal.targetAmount && wasNotCompleted) {
         updates.completedAt = new Date().toISOString();
+        
+        // Notificar que se completó el objetivo
+        const { NotificationHelper } = await import('../../utils/notificationHelper');
+        await NotificationHelper.notifyGoalCompleted(goal.userId, goalId, goal.title);
       }
 
       await this.updateGoal(goalId, updates);

@@ -5,6 +5,7 @@ import { AuthService } from '@/src/services/auth/AuthService';
 import { TransactionService } from '@/src/services/firestore/TransactionService';
 import { Transaction, TransactionSummary } from '@/src/models/Transaction';
 import { formatCurrency } from '@/src/utils/currency';
+import { NotificationHelper } from '@/src/utils/notificationHelper';
 
 export const useHomeViewModel = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -39,6 +40,11 @@ export const useHomeViewModel = () => {
         currentUser.uid
       );
       calculateSummary(monthTransactions);
+
+      // Verificar notificaciones en segundo plano
+      NotificationHelper.checkAllNotifications(currentUser.uid).catch(error => {
+        console.error('Error al verificar notificaciones:', error);
+      });
     } catch (error) {
       console.error('Error al cargar transacciones:', error);
     } finally {
