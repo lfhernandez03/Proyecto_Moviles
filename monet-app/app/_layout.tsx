@@ -1,24 +1,40 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+// app/_layout.tsx
+import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import React from 'react';
 import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAuthViewModel } from '@/src/viewmodels/auth/useAuthViewModel';
+import { useProtectedRoute } from '@/hooks/routes/useProtectedRoutes';
+import { ActivityIndicator } from 'react-native';
 
 export const unstable_settings = {
-  anchor: '(tabs)',
+  initialRouteName: '(auth)',
 };
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  // ViewModel: Maneja el estado de autenticación
+  const { user, initializing, isAuthenticated } = useAuthViewModel();
 
+  // Hook: Maneja la navegación protegida
+  useProtectedRoute({ 
+    isAuthenticated, 
+    isLoading: initializing 
+  });
+
+  // Vista: Muestra loading mientras se inicializa
+  if (initializing) {
+    return <ActivityIndicator size="large" color="#10B981" />;
+  }
+
+  // Vista: Renderiza la navegación
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+    <ThemeProvider value={DefaultTheme}>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
       </Stack>
-      <StatusBar style="auto" />
+      <StatusBar style="dark" />
     </ThemeProvider>
   );
 }

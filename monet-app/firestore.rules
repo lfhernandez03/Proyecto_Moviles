@@ -1,0 +1,161 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Función helper para verificar autenticación
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Función helper para verificar propiedad del documento
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    // === USUARIOS ===
+    match /users/{userId} {
+      // Permitir lectura y escritura solo al usuario propietario
+      allow read, write: if isOwner(userId);
+      
+      // Permitir creación durante el registro
+      allow create: if isSignedIn() && request.auth.uid == userId;
+    }
+    
+    // === TRANSACCIONES ===
+    match /transactions/{transactionId} {
+      // Permitir lectura si es el propietario
+      allow read: if isSignedIn() && 
+                     resource.data.userId == request.auth.uid;
+      
+      // Permitir creación solo si el userId coincide con el usuario autenticado
+      allow create: if isSignedIn() && 
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.keys().hasAll([
+                         'userId', 'type', 'amount', 'description', 
+                         'category', 'icon', 'date'
+                       ]) &&
+                       request.resource.data.type in ['income', 'expense'] &&
+                       request.resource.data.amount is number &&
+                       request.resource.data.amount > 0;
+      
+      // Permitir actualización si es el propietario
+      allow update: if isSignedIn() && 
+                       resource.data.userId == request.auth.uid &&
+                       request.resource.data.userId == request.auth.uid;
+      
+      // Permitir eliminación si es el propietario
+      allow delete: if isSignedIn() && 
+                       resource.data.userId == request.auth.uid;
+    }
+    
+    // === CATEGORÍAS ===
+    match /categories/{categoryId} {
+      // Permitir lectura si es el propietario
+      allow read: if isSignedIn() && 
+                     resource.data.userId == request.auth.uid;
+      
+      // Permitir creación solo si el userId coincide
+      allow create: if isSignedIn() && 
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.keys().hasAll([
+                         'userId', 'name', 'displayName', 'icon', 'color'
+                       ]);
+      
+      // Permitir actualización si es el propietario
+      allow update: if isSignedIn() && 
+                       resource.data.userId == request.auth.uid &&
+                       request.resource.data.userId == request.auth.uid;
+      
+      // Permitir eliminación si es el propietario
+      allow delete: if isSignedIn() && 
+                       resource.data.userId == request.auth.uid;
+    }
+    
+    // === PRESUPUESTOS ===
+    match /budgets/{budgetId} {
+      // Permitir lectura si es el propietario
+      allow read: if isSignedIn() && 
+                     resource.data.userId == request.auth.uid;
+      
+      // Permitir creación solo si el userId coincide
+      allow create: if isSignedIn() && 
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.keys().hasAll([
+                         'userId', 'category', 'amount', 'description', 'period'
+                       ]) &&
+                       request.resource.data.amount is number &&
+                       request.resource.data.amount > 0 &&
+                       request.resource.data.period in ['weekly', 'monthly', 'yearly'];
+      
+      // Permitir actualización si es el propietario
+      allow update: if isSignedIn() && 
+                       resource.data.userId == request.auth.uid &&
+                       request.resource.data.userId == request.auth.uid;
+      
+      // Permitir eliminación si es el propietario
+      allow delete: if isSignedIn() && 
+                       resource.data.userId == request.auth.uid;
+    }
+    
+    // === OBJETIVOS FINANCIEROS ===
+    match /goals/{goalId} {
+      // Permitir lectura si es el propietario
+      allow read: if isSignedIn() && 
+                     resource.data.userId == request.auth.uid;
+      
+      // Permitir creación solo si el userId coincide
+      allow create: if isSignedIn() && 
+                       request.resource.data.userId == request.auth.uid &&
+                       request.resource.data.keys().hasAll([
+                         'userId', 'title', 'description', 'targetAmount', 
+                         'currentAmount', 'icon'
+                       ]) &&
+                       request.resource.data.targetAmount is number &&
+                       request.resource.data.targetAmount > 0 &&
+                       request.resource.data.currentAmount is number &&
+                       request.resource.data.currentAmount >= 0;
+      
+      // Permitir actualización si es el propietario
+      allow update: if isSignedIn() && 
+                       resource.data.userId == request.auth.uid &&
+                       request.resource.data.userId == request.auth.uid &&
+                       // Validar que currentAmount no sea negativo
+                       request.resource.data.currentAmount >= 0;
+      
+      // Permitir eliminación si es el propietario
+      allow delete: if isSignedIn() && 
+                       resource.data.userId == request.auth.uid;
+    }
+    
+    // === NOTIFICACIONES ===
+    match /notifications/{notificationId} {
+      // Permitir lectura si es el destinatario
+      allow read: if isSignedIn() && 
+                     resource.data.userId == request.auth.uid;
+      
+      // Permitir creación por el sistema o el usuario
+      allow create: if isSignedIn() && 
+                       request.resource.data.userId == request.auth.uid;
+      
+      // Permitir actualización (marcar como leída)
+      allow update: if isSignedIn() && 
+                       resource.data.userId == request.auth.uid;
+      
+      // Permitir eliminación
+      allow delete: if isSignedIn() && 
+                       resource.data.userId == request.auth.uid;
+    }
+    
+    // === CONFIGURACIÓN DE USUARIO ===
+    match /userSettings/{userId} {
+      // Permitir lectura y escritura solo al usuario propietario
+      allow read, write: if isOwner(userId);
+    }
+    
+    // Denegar acceso a cualquier otra colección no especificada
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
