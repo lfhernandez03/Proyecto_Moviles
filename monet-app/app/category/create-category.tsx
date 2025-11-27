@@ -34,12 +34,10 @@ export default function CreateCategoryScreen() {
     name,
     displayName,
     selectedColor,
-    selectedIcon,
     loading,
     setName,
     setDisplayName,
     setSelectedColor,
-    setSelectedIcon,
     handleSave,
   } = useCreateCategoryViewModel(categoryType);
 
