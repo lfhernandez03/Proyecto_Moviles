@@ -1,50 +1,48 @@
 {
   "expo": {
-    "name": "monet-app",
+    "name": "MONET - Finanzas Personales",
     "slug": "monet-app",
-    "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "monet",
+    "scheme": "monetapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
+
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.moviles.monetapp",
-      "buildNumber": "1",
-      "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "Esta app necesita acceso a tu galería para cambiar tu foto de perfil.",
-        "NSCameraUsageDescription": "Esta app necesita acceso a tu cámara para tomar fotos de perfil."
-      }
+      "buildNumber": "1"
     },
+
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "package": "com.lfhernandez03.monetapp",
-      "googleServicesFile": "./google-services.json",
+      "versionCode": 1,
       "permissions": [
         "android.permission.INTERNET",
-        "android.permission.ACCESS_NETWORK_STATE",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.CAMERA"
-      ]
+        "android.permission.ACCESS_NETWORK_STATE"
+      ],
+      "googleServicesFile": "./google-services.json",
+      "predictiveBackGestureEnabled": false
     },
+
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.png",
       "bundler": "metro"
     },
+
     "plugins": [
       "expo-router",
       [
@@ -59,18 +57,14 @@
             "backgroundColor": "#000000"
           }
         }
-      ],
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "Esta app necesita acceso a tu galería para cambiar tu foto de perfil.",
-          "cameraPermission": "Esta app necesita acceso a tu cámara para tomar fotos de perfil."
-        }
       ]
     ],
+
     "experiments": {
-      "typedRoutes": true
+      "typedRoutes": true,
+      "reactCompiler": true
     },
+
     "extra": {
       "router": {
         "origin": false
@@ -79,6 +73,7 @@
         "projectId": "5dc93fd3-9b25-4b17-9a8b-0914d6254ad4"
       }
     },
+
     "owner": "lfhernandez03"
   }
 }
