@@ -5,8 +5,8 @@ import { AuthService } from '@/src/services/auth/AuthService';
 import { TransactionService } from '@/src/services/firestore/TransactionService';
 import { Transaction, TransactionSummary } from '@/src/models/Transaction';
 import { formatCurrency } from '@/src/utils/currency';
-import { NotificationHelper } from '@/src/utils/notificationHelper';
-import { UserSettingsService } from '@/src/services/firestore/UserSettingsService';
+import { checkAllNotifications } from '../../utils/notificationHelper';
+import { UserSettingsService } from '../../services/firestore/UserSettingsService';
 
 export const useHomeViewModel = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -60,7 +60,7 @@ export const useHomeViewModel = () => {
       calculateSummary(monthTransactions);
 
       // Verificar notificaciones en segundo plano
-      NotificationHelper.checkAllNotifications(currentUser.uid).catch(error => {
+      checkAllNotifications(currentUser.uid).catch(error => {
         console.error('Error al verificar notificaciones:', error);
       });
     } catch (error) {
@@ -163,6 +163,7 @@ export const useHomeViewModel = () => {
   useEffect(() => {
     loadUserSettings();
     loadTransactions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {

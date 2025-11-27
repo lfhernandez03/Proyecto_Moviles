@@ -5,7 +5,7 @@ import { AuthService } from '@/src/services/auth/AuthService';
 import { BudgetService } from '@/src/services/firestore/BudgetService';
 import { CategoryService } from '@/src/services/firestore/CategoryService';
 import { Category } from '@/src/models/Category';
-import { NotificationHelper } from '@/src/utils/notificationHelper';
+import { checkBudgetExceeded } from '../../../utils/notificationHelper';
 
 export const useCreateBudgetViewModel = () => {
   const [amount, setAmount] = useState('');
@@ -123,10 +123,11 @@ export const useCreateBudgetViewModel = () => {
         period: 'monthly',
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
+        description: undefined
       });
 
       // Verificar notificaciones de presupuesto después de crear
-      NotificationHelper.checkBudgetExceeded(currentUser.uid).catch((error: Error) => {
+      checkBudgetExceeded(currentUser.uid).catch((error: Error) => {
         console.error('Error al verificar presupuesto:', error);
       });
 
@@ -164,6 +165,7 @@ export const useCreateBudgetViewModel = () => {
   // Cargar categorías al montar
   useEffect(() => {
     loadCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {

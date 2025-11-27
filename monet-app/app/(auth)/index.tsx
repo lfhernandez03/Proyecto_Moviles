@@ -17,6 +17,13 @@ export default function LoginView() {
     signIn,
   } = useLoginViewModel();
 
+  // Registrar error si existe
+  React.useEffect(() => {
+    if (error) {
+      console.log('Login error:', error);
+    }
+  }, [error]);
+
   return (
     <ThemedView style={styles.container}>
       <KeyboardAvoidingView
