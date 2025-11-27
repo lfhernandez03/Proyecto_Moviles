@@ -31,6 +31,7 @@ export default function TransactionsView() {
     navigateToAddTransaction,
     navigateToTransactionDetail,
     getCategoryColor,
+    getCategoryDisplayName,
     formatRelativeDate,
     refreshData,
   } = useTransactionsViewModel();
@@ -138,6 +139,7 @@ export default function TransactionsView() {
                 id={transaction.id}
                 type={transaction.type}
                 category={transaction.category}
+                categoryDisplayName={getCategoryDisplayName(transaction.category)}
                 description={transaction.description}
                 amount={transaction.amount}
                 date={transaction.date}

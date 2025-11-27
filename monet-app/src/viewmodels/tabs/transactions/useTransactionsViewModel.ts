@@ -137,6 +137,23 @@ export const useTransactionsViewModel = () => {
   };
 
   /**
+   * Obtiene el nombre para mostrar de la categoría
+   */
+  const getCategoryDisplayName = (category: string): string => {
+    const displayNames: { [key: string]: string } = {
+      food: 'Comida',
+      transport: 'Transporte',
+      entertainment: 'Entretenimiento',
+      shopping: 'Compras',
+      bills: 'Facturas',
+      salary: 'Salario',
+      health: 'Salud',
+      other: 'Otro',
+    };
+    return displayNames[category] || category;
+  };
+
+  /**
    * Formatea la fecha de forma relativa
    */
   const formatRelativeDate = (dateString: string): string => {
@@ -185,6 +202,7 @@ export const useTransactionsViewModel = () => {
     navigateToAddTransaction,
     navigateToTransactionDetail,
     getCategoryColor,
+    getCategoryDisplayName,
     formatRelativeDate,
     refreshData: loadTransactions,
   };

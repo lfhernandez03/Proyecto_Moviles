@@ -8,6 +8,7 @@ interface TransactionCardProps {
   id: string;
   type: 'income' | 'expense';
   category: string;
+  categoryDisplayName?: string;
   description: string;
   amount: number;
   date: string;
@@ -19,6 +20,7 @@ interface TransactionCardProps {
 export function TransactionCard({
   type,
   category,
+  categoryDisplayName,
   description,
   amount,
   date,
@@ -51,7 +53,7 @@ export function TransactionCard({
         />
       </View>
       <View style={styles.info}>
-        <Text style={styles.category}>{category}</Text>
+        <Text style={styles.category}>{categoryDisplayName || category}</Text>
         <Text style={styles.description} numberOfLines={1}>
           {description}
         </Text>
