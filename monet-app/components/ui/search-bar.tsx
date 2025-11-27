@@ -1,17 +1,18 @@
 // components/ui/search-bar.tsx
 import React from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TextInput, TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface SearchBarProps {
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
+  style?: ViewStyle;
 }
 
-export function SearchBar({ value, onChangeText, placeholder = 'Buscar...' }: SearchBarProps) {
+export function SearchBar({ value, onChangeText, placeholder = 'Buscar...', style }: SearchBarProps) {
   return (
-    <View style={styles.searchContainer}>
+    <View style={[styles.searchContainer, style]}>
       <Ionicons name="search-outline" size={20} color="#9CA3AF" style={styles.searchIcon} />
       <TextInput
         style={styles.searchInput}
@@ -37,7 +38,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     marginHorizontal: 20,
-    marginTop: 16,
+    marginBottom: 16,
     height: 48,
   },
   searchIcon: {

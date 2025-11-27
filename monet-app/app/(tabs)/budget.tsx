@@ -25,10 +25,8 @@ export default function BudgetView() {
     handleSearchChange,
     navigateToCreateBudget,
     navigateToBudgetDetail,
-    calculatePercentage,
     getPercentageColor,
-    isOverBudget,
-    getOverBudgetAmount,
+
     refreshData,
   } = useBudgetViewModel();
 
@@ -85,6 +83,7 @@ export default function BudgetView() {
             value={searchQuery}
             onChangeText={handleSearchChange}
             placeholder="Buscar categoría"
+            style={{ marginHorizontal: 0 }}
           />
 
           {/* Budget List */}
