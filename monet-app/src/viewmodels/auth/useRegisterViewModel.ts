@@ -1,7 +1,6 @@
 // src/viewmodels/auth/useRegisterViewModel.ts
 import { useState } from 'react';
 import { Alert } from 'react-native';
-import { router } from 'expo-router';
 import { FirebaseError } from 'firebase/app';
 import { AuthService } from '@/src/services/auth/AuthService';
 import { UserService } from '@/src/services/firestore/UserService';
