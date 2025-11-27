@@ -7,7 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "monet",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
@@ -31,7 +31,6 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.lfhernandez03.monetapp",
-      "versionCode": 1,
       "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.INTERNET",
@@ -39,9 +38,7 @@
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.CAMERA"
-      ],
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      ]
     },
     "web": {
       "output": "static",
@@ -50,7 +47,6 @@
     },
     "plugins": [
       "expo-router",
-      "@react-native-firebase/app",
       [
         "expo-splash-screen",
         {
@@ -73,8 +69,7 @@
       ]
     ],
     "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "typedRoutes": true
     },
     "extra": {
       "router": {
