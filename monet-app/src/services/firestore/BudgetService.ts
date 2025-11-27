@@ -23,11 +23,18 @@ export class BudgetService {
     budget: Omit<Budget, 'id' | 'createdAt' | 'spent'>
   ): Promise<string> {
     try {
-      const budgetData = {
+      const budgetData: any = {
         ...budget,
         spent: 0,
         createdAt: new Date().toISOString(),
       };
+
+      // Eliminar campos undefined ya que Firestore no los acepta
+      Object.keys(budgetData).forEach(key => {
+        if (budgetData[key] === undefined) {
+          delete budgetData[key];
+        }
+      });
 
       const docRef = await addDoc(
         collection(db, this.COLLECTION),

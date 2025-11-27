@@ -1,5 +1,4 @@
 export interface Budget {
-  description: any;
   id: string;
   userId: string;
   category: string;
@@ -11,6 +10,7 @@ export interface Budget {
   startDate: string;
   endDate: string;
   createdAt: string;
+  description?: string;
 }
 
 export interface BudgetSummary {

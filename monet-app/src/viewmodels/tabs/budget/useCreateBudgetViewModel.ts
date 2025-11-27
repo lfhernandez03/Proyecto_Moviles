@@ -123,7 +123,7 @@ export const useCreateBudgetViewModel = () => {
         period: 'monthly',
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
-        description: undefined
+        ...(description.trim() && { description: description.trim() })
       });
 
       // Verificar notificaciones de presupuesto después de crear
