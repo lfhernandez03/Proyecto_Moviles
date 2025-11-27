@@ -58,13 +58,9 @@ service cloud.firestore {
       // Permitir creación solo si el userId coincide
       allow create: if isSignedIn() && 
                        request.resource.data.userId == request.auth.uid &&
-                       request.resource.data.keys().hasAll([
-                         'userId', 'name', 'displayName', 'type', 'icon', 'color', 'isCustom'
-                       ]) &&
-                       request.resource.data.type in ['income', 'expense'] &&
                        request.resource.data.name is string &&
                        request.resource.data.displayName is string &&
-                       request.resource.data.icon is string &&
+                       request.resource.data.type in ['income', 'expense', 'both'] &&
                        request.resource.data.color is string &&
                        request.resource.data.isCustom is bool;
       
